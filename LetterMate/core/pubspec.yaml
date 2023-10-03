@@ -1,0 +1,43 @@
+name: core
+version: 0.0.1
+publish_to: none
+description: Project core module
+
+environment:
+  sdk: '>=2.18.2 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  data:
+    path: ../data
+  domain:
+    path: ../domain
+  navigation:
+    path: ../navigation
+  profile_view:
+    path: ../features/profile_view
+
+  get_it: ^7.6.0
+  flutter_bloc: ^8.1.1
+  internet_connection_checker: ^1.0.0+1
+  image_picker: ^1.0.4
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+  internet_connection_checker: ^1.0.0+1
+  flutter_bloc: ^8.1.1
+  dartz: ^0.10.1
+  firebase_auth: ^4.9.0
+  firebase_core: ^2.15.1
+  firebase_storage: ^11.2.6
+  firebase_database: ^10.2.5
+  get_it: ^7.6.0
+
+flutter:
+

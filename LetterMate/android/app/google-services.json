@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "701633595191",
+    "project_id": "lettermate-ed713",
+    "storage_bucket": "lettermate-ed713.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701633595191:android:3107b32ebedea03f61fcb2",
+        "android_client_info": {
+          "package_name": "com.yelizaryeu.lettermate.letter_mate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701633595191-1nlk53sel26u7bfsrvqfbuh5vmah4pu5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yelizaryeu.lettermate.letter_mate",
+            "certificate_hash": "bc2ce2e78f252deb8bb15cc6aa4e692c59da6467"
+          }
+        },
+        {
+          "client_id": "701633595191-ga33kc9h3dmhc4b68rdj75qqr06f28tb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDK1K0QGqaAaL6v7iVcr3nK-vuTd3t-Yrs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701633595191-ga33kc9h3dmhc4b68rdj75qqr06f28tb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "701633595191-ifolu4uoimr7l1gt96745j2fqpqaf3ea.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yelizaryeu.lettermate.letterMate"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
