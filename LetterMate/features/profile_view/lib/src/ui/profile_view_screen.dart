@@ -100,31 +100,23 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
             backgroundColor: Colors.grey.shade400,
             title: Align(
               alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 35,
-                height: 35,
-                child: TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(AppTheme.buttonColor),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        //side: BorderSide(color: Colors.),
-                      ),
+              child: GestureDetector(
+                child: Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade600,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.grey.shade800,
+                      size: 25.0,
                     ),
                   ),
-                  onPressed: () {},
-                  child: /*Text(
-                    '...',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 3.0),
-                  ),*/
-                      Icon(
-                    Icons.more_horiz_rounded,
-                    color: Colors.grey.shade800,
-                        size: 17.0,
-                  ),
                 ),
-              ),
+              )
             ),
           ),
           body: BlocBuilder<ProfileBloc, ProfileState>(

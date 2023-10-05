@@ -131,6 +131,7 @@ class DatabaseService extends ChangeNotifier {
   }
 
   Future<bool> checkExist(String uuid) async {
+    //userCollection.where("uuid", isEqualTo: uuid).get();
     final DocumentSnapshot doc = await userCollection.doc(uuid).get();
     if (doc.data() != null) {
       return true;
@@ -154,26 +155,6 @@ class DatabaseService extends ChangeNotifier {
     return chatEntity;
   }
 
-  // get chat messages
-  List<MessageEntity> getMessages(String receiverId) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('chat')
-        .doc(receiverId)
-        .collection('messages')
-        .orderBy('sentTime', descending: false)
-        .snapshots(includeMetadataChanges: true)
-        .listen((messages) {
-      this.messages = messages.docs
-          .map((doc) => MessageEntity.fromJson(doc.data()))
-          .toList();
-      notifyListeners();
-
-      scrollDown();
-    });
-    return messages;
-  }
 
   // get chat members
   getChatMembers(chatId) async {
@@ -184,6 +165,8 @@ class DatabaseService extends ChangeNotifier {
   searchById(String uid) {
     return chatCollection.where("chatName", isEqualTo: uid).get();
   }
+
+
 
   // function -> bool
   Future<bool> isUserJoined(
@@ -229,7 +212,7 @@ class DatabaseService extends ChangeNotifier {
 
   // send message
   sendMessage(String chatId, Map<String, dynamic> chatMessageData) async {
-    chatCollection.doc(chatId).collection("messages").add(chatMessageData);
+    chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
     chatCollection.doc(chatId).update({
       "recentMessage": chatMessageData['message'],
       "recentMessageSender": chatMessageData['sender'],
@@ -237,14 +220,72 @@ class DatabaseService extends ChangeNotifier {
     });
   }
 
-  //scroll down method
-  void scrollDown() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.jumpTo(
-              scrollController.position.maxScrollExtent);
-        }
-      });
+  Future sendUserFile(String chatId, File file, String path, Map<String, dynamic> chatMessageData) async {
+    await FirebaseStorage.instance.ref().child(path).putFile(file);
+    final message = await FirebaseStorage.instance.ref(path).getDownloadURL();
+    chatMessageData["message"] = message;
+    print('sending this message: $message');
+    chatCollection.doc(chatId).collection("messages").add(chatMessageData);
+    chatCollection.doc(chatId).update({
+      "recentMessage": 'image',
+      "recentMessageSender": chatMessageData['sender'],
+      "recentMessageTime": chatMessageData['time'].toString(),
+  });
+  }
+
+  editMessage(String chatId, String message, String messageId) async {
+    await chatCollection.doc(chatId).collection("messages").doc(messageId).update({'message': message, 'isEdited': true});
+  }
+
+  deleteMessage(String chatId, String messageId) async {
+    await chatCollection.doc(chatId).collection("messages").doc(messageId).update({'isDeleted': true});
+  }
+
+  deleteChat(String chatId, String chatName) async {
+    final doc = await chatCollection.doc(chatId).get();
+    final data = doc.data() as Map<String, dynamic>;
+    final members = data["members"];
+    for (String member in members) {
+      await userCollection.doc(member).update({'chats': FieldValue.arrayRemove(["${chatId}_$chatName"])});
+    }
+    await chatCollection.doc(chatId).delete();
+  }
+
+  // void writeNewPost(String uid, String username, String picture, String title,
+  //     String body) async {
+  //   // A post entry.
+  //   final postData = {
+  //     'author': username,
+  //     'uid': uid,
+  //     'body': body,
+  //     'title': title,
+  //     'starCount': 0,
+  //     'authorPic': picture,
+  //   };
+
+  //   // Get a key for a new Post.
+  //   final newPostKey =
+  //       FirebaseDatabase.instance.ref().child('posts').push().key;
+  //
+  //   // Write the new post's data simultaneously in the posts list and the
+  //   // user's post list.
+  //   final Map<String, Map> updates = {};
+  //   updates['/posts/$newPostKey'] = postData;
+  //   updates['/user-posts/$uid/$newPostKey'] = postData;
+  //
+  //   return FirebaseDatabase.instance.ref().update(updates);
+  // }
+  //
+  // deleteMessage(String chatId, ),
+  //
+  // //scroll down method
+  // void scrollDown() =>
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (scrollController.hasClients) {
+  //         scrollController.jumpTo(
+  //             scrollController.position.maxScrollExtent);
+  //       }
+  //     });
 
   // Future<void> searchUser(String name) async {
   //   search =

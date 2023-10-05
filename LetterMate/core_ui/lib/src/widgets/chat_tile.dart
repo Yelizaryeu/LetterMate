@@ -15,7 +15,8 @@ class ChatTile extends StatefulWidget {
         this.resentMessage,
         required this.chatId,
         required this.chatName,
-        required this.userName})
+        required this.userName,
+      })
       : super(key: key);
 
   @override

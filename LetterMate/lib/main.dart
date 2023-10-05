@@ -32,11 +32,11 @@ void main() async {
     //           messagingSenderId: "701633595191",
     //           projectId: "lettermate-ed713"),
     // );
+  await AuthService().signInAnon();
   print('init appDI start');
   await appDI.initDependencies();
   print('init dataDI start');
   await dataDI.initDependencies();
-  await AuthService().signInAnon();
   print('running LetterMateApp');
   runApp(const LetterMateApp());
 }

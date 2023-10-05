@@ -7,6 +7,7 @@ import 'package:domain/repositories/database_repository.dart';
 import 'package:domain/usecases/export_usecases.dart';
 import 'package:profile_view/profile_view.dart';
 import 'package:chat_view/chat_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/auth.dart';
 import 'app_di.dart';

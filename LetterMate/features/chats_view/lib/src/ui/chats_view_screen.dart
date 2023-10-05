@@ -22,13 +22,15 @@ class ChatsViewScreen extends StatefulWidget {
 class ChatsViewScreenState extends State<ChatsViewScreen> {
   late TextEditingController controller;
   final currentUser = FirebaseAuth.instance.currentUser;
+
   late String userName = "";
   AuthService authService = AuthService();
   Stream? chats;
   bool _isLoading = false;
   String chatName = "";
   String companionId = "";
-  late final DatabaseService databaseService;
+  Offset _tapPosition = Offset.zero;
+  final DatabaseService databaseService = appLocator<DatabaseService>();
   //UserEntity currentUser = appLocator.get<UserEntity>(instanceName: 'currentUser');
 
   @override
@@ -36,7 +38,6 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
     super.initState();
     gettingUserData();
     getUserName();
-    databaseService = DatabaseService(uid: currentUser!.uid);
 
     controller = TextEditingController();
   }
@@ -305,15 +306,8 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
       ),
     );
   }
-}
 
-  // Widget _displayChatList () {
-  //   return StreamBuilder(stream: FirebaseFirestore.instance.collection('users').snapshots(), builder: (context, snapshot) {
-  //       return ListView(children:
-  //           snapshot.data!.docs.map<Widget>((doc) => _buildChatListItem(doc)).toList(),
-  //       );
-  //   },);
-  // }
+}
 
 void showSnackbar(context, color, message) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -332,6 +326,14 @@ void showSnackbar(context, color, message) {
     ),
   );
 }
+
+  // Widget _displayChatList () {
+  //   return StreamBuilder(stream: FirebaseFirestore.instance.collection('users').snapshots(), builder: (context, snapshot) {
+  //       return ListView(children:
+  //           snapshot.data!.docs.map<Widget>((doc) => _buildChatListItem(doc)).toList(),
+  //       );
+  //   },);
+  // }
 
   // Widget _buildChatListItem(DocumentSnapshot document) {
   //   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
