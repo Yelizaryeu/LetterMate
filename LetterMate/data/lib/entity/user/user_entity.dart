@@ -7,32 +7,31 @@ class UserEntity extends UserModel {
         required super.uid,
         required super.displayName,
         required super.photoURL,
-        required super.chats
+        required super.chats,
+        required super.fCMToken,
       });
 
 
-  factory  UserEntity.fromJson(Map<String, dynamic> json, uid) {
-    String photoURL = json['photoURL'];
-    // if (photoURL == '') {
-    //   photoURL = 'assets/images/default_profile.jpg';
-    //   //photoURL = 'gs://lettermate-ed713.appspot.com/default_profile.jpg';
-    // }
-    //List<dynamic> chats = json['chats'];
+  factory  UserEntity.fromJson(Map<String, dynamic> json) {
+
     return UserEntity(
-      uid: uid,
+      uid: json['uid'],
       uuid: json['uuid'],
       displayName: json['displayName'] ?? 'Anon',
-      photoURL: photoURL,
+      photoURL: json['photoURL'],
       chats: json['chats'],
+      fCMToken: json['fCMToken'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'uid' : uid,
       'uuid' : uuid,
       'displayName': displayName,
       'photoURL': photoURL,
       'chats' : chats,
+      'fCMToken': fCMToken,
     };
   }
 

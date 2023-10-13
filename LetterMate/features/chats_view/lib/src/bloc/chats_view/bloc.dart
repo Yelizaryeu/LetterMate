@@ -19,7 +19,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   _fetchChatsData(ChatsFetchedEvent event, Emitter<ChatsState> emit) async {
     //final currentUserData = serviceLocator.get<UserEntity>(instanceName: 'currentUser');
-    final chats = databaseRepository.getUserChats();
+    final chats = databaseRepository.gettingUserData();
     //await databaseRepository.updateUserData(currentUserData);
     //UserModel userData = await databaseRepository.gettingUserData(currentUserData.uid);
     emit(ChatsLoadedState(chats));

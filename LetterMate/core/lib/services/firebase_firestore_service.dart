@@ -16,13 +16,15 @@ class FirebaseFirestoreService {
     required String uuid,
     required String uid,
     required List<String> chats,
+    required String fCMToken,
   }) async {
     final user = UserEntity(
       uid: uid,
       uuid: uuid,
       displayName: displayName,
       photoURL: photoURL,
-      chats: chats
+      chats: chats,
+      fCMToken: fCMToken,
     );
 
     await firestore

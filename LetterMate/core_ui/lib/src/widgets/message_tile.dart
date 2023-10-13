@@ -72,6 +72,8 @@ class _MessageTileState extends State<MessageTile> {
     final messageSendTime = DateTime.fromMillisecondsSinceEpoch(time);
     if ((DateTime.now().millisecondsSinceEpoch - time) < 20000) {
       return "now";
+    } else if ((DateTime.now().millisecondsSinceEpoch - time) < 86400000) {
+      return "${messageSendTime.hour}:${messageSendTime.minute}";
     } else {
       return "${messageSendTime.day}/${messageSendTime.month}/${messageSendTime.year}";
     }

@@ -28,6 +28,7 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
   PlatformFile? pickedFile;
   late final DatabaseService databaseService;
   late bool isEditMode;
+  Offset _tapPosition = Offset.zero;
 
   final currentUser = FirebaseAuth.instance.currentUser;
   //UserEntity currentUser = appLocator.get<UserEntity>(instanceName: 'currentUser');
@@ -101,6 +102,8 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
             title: Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
+                onTapDown: (position) => {_getTapPosition(position)},
+                onLongPress: () => {_showDeleteChatMenu(context)},
                 child: Container(
                   height: 30,
                   width: 30,
@@ -227,10 +230,9 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
                               print('got uid from textfield');
                               if (pickedFile != null) {
                                 print('pickedfile not null so try to upload');
-                                uploadAvatar(
+                                await uploadAvatar(
                                     contextWidget: contextWidget,
-                                    userEntity: state.userData,
-                                    file: File(pickedFile!.path!));
+                                    file: File(pickedFile!.path!),);
                               }
                               print('trying to change data in firestore');
                               await changeUserData(contextWidget: contextWidget, userEntity: state.userData);
@@ -239,6 +241,7 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
                                 //BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileUpdateEvent(state.userData));
                                 //appLocator<ProfileBloc>().add(ProfileUpdateEvent(currentUser));
                                 //appLocator<ProfileBloc>().add(ProfileFetchedEvent(currentUser));
+                                //_fetchData(contextWidget: contextWidget, userEntity: state.userData);
                                 BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileFetchedEvent(state.userData.uid));
                                 //context.read<ProfileBloc>().add(DatabaseFetchedEvent(currentUser));
                                 nameController.clear();
@@ -281,7 +284,8 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
     );
   }
 
-  void _fetchData({required BuildContext contextWidget, required UserEntity userEntity}) {
+  _fetchData({required BuildContext contextWidget, required UserEntity userEntity}) {
+    print('added ProfileFetchedEvent');
     BlocProvider.of<ProfileBloc>(contextWidget).add(
       ProfileFetchedEvent(userEntity.uid),
     );
@@ -304,17 +308,49 @@ class ProfileViewScreenState extends State<ProfileViewScreen> {
     // }
   }
 
-  uploadAvatar({required BuildContext contextWidget, required userEntity, required file}) {
+  uploadAvatar({required BuildContext contextWidget, required file}) {
     final path = '${currentUser!.uid}/files/avatar/';
     //await databaseService.updateUserPhoto(file, path);
-    BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileAvatarEvent(userEntity, file, path));
-    _fetchData(contextWidget: contextWidget, userEntity: userEntity);
-    return;
+    BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileAvatarEvent(file, path));
   }
 
   changeUserData({required BuildContext contextWidget, required UserEntity userEntity}) {
-    BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileUpdateEvent(userEntity));
+    print('added ProfileUpdateEvent');
+    BlocProvider.of<ProfileBloc>(contextWidget).add(ProfileUpdateEvent(userEntity),);
   }
+
+  void _getTapPosition(TapDownDetails tapPosition){
+    final RenderBox referenceBox = context.findRenderObject() as RenderBox;
+    setState(() {
+      _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition);   // store the tap positon in offset variable
+      print(_tapPosition);
+    });
+  }
+
+  void _showDeleteChatMenu(BuildContext contextWidget) async {
+    final RenderObject? overlay =
+    Overlay.of(context)?.context.findRenderObject();
+
+    final result = await showMenu(
+        context: context,
+        position: RelativeRect.fromRect(
+            Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
+            Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width,
+                overlay!.paintBounds.size.height)),
+        items: [
+          const PopupMenuItem(
+            child: Text('Delete account'),
+            value: "delete",
+          ),
+        ]);
+    // perform action on selected menu item
+    switch (result) {
+      case 'delete':
+        databaseService.deleteAccount();
+        break;
+    }
+  }
+
 
   Future<void> uploadImage(Uint8List file, String storagePath) async =>
       await FirebaseStorage.instance.ref().child(storagePath).putData(file);

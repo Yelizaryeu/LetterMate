@@ -23,11 +23,12 @@ class ProfileUpdateEvent extends ProfileEvent {
   List<Object?> get props => [userEntity];
 }
 
+class ProfileDeleteEvent extends ProfileEvent {}
+
 class ProfileAvatarEvent extends ProfileEvent {
-  final UserEntity userEntity;
   final File avatar;
   final String path;
-  const ProfileAvatarEvent(this.userEntity, this.avatar, this.path);
+  const ProfileAvatarEvent(this.avatar, this.path);
 
   @override
   List<Object?> get props => [avatar];

@@ -28,9 +28,12 @@ class DataDI {
     // print('signed current user');
     // appLocator.registerSingleton<UserEntity>(currentUser, instanceName: 'currentUser',);
 
+
     appLocator.registerLazySingleton<DatabaseService>(
-      () => DatabaseService(),
+      () => DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid),
     );
+
+    await appLocator<DatabaseService>().initNotifications();
   }
 
   Future _initChats() async {

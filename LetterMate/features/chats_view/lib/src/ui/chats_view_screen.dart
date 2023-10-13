@@ -6,6 +6,7 @@ import 'package:core/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data/entity/user/user_entity.dart';
+import 'package:data/entity/chat/chat_entity.dart';
 import 'package:navigation/navigation.dart';
 import 'package:data/providers/database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,6 +29,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
   Stream? chats;
   bool _isLoading = false;
   String chatName = "";
+  String resentMessage = "";
   String companionId = "";
   Offset _tapPosition = Offset.zero;
   final DatabaseService databaseService = appLocator<DatabaseService>();
@@ -56,8 +58,8 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
 
   gettingUserData() async {
     // getting the list of snapshots in our stream
-    await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
-        .getUserChats()
+    await databaseService
+        .gettingUserData()
         .then((snapshot) {
       setState(() {
         chats = snapshot;
@@ -66,7 +68,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
   }
 
   getUserName() async {
-    UserEntity user = await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid).getUserData(FirebaseAuth.instance.currentUser!.uid);
+    UserEntity user = await databaseService.getUserData();
     setState(() {
       userName = user.displayName;
     });
@@ -155,27 +157,6 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                       : TextField(
                     onChanged: (val) {
                       setState(() {
-                        chatName = val;
-                      });
-                    },
-                    style: const TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                            borderRadius: BorderRadius.circular(20)),
-                        errorBorder: OutlineInputBorder(
-                            borderSide:
-                            const BorderSide(color: Colors.red),
-                            borderRadius: BorderRadius.circular(20)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                            borderRadius: BorderRadius.circular(20))),
-                  ),
-                  TextField(
-                    onChanged: (val) {
-                      setState(() {
                         companionId = val;
                       });
                     },
@@ -213,16 +194,17 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                       });
                       if (await databaseService.checkExist(companionId)){
                         databaseService
-                            .createChat(userName,
-                            FirebaseAuth.instance.currentUser!.uid, chatName, companionId)
+                            .createChat(userName, companionId)
                             .whenComplete(() {
                           _isLoading = false;
                         });
                         Navigator.of(context).pop();
                       } else {
                         Navigator.of(context).pop();
+                        _isLoading = false;
                         showSnackbar(
                             context, Colors.red, "this user don't exist.");
+
                       }
                       // showSnackbar(
                       //     context, Colors.green, "Group created successfully.");
@@ -248,11 +230,14 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
           if (snapshot.data['chats'] != null) {
             print('snapshot have chats');
             if (snapshot.data['chats'].length != 0) {
+
+
               return ListView.builder(
                 padding: EdgeInsets.only(top: 5),
                 itemCount: snapshot.data['chats'].length,
                 itemBuilder: (context, index) {
                   int reverseIndex = snapshot.data['chats'].length - index - 1;
+
                   return ChatTile(
                       chatId: getId(snapshot.data['chats'][reverseIndex]),
                       chatName: getName(snapshot.data['chats'][reverseIndex]),
@@ -307,7 +292,10 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
     );
   }
 
+
 }
+
+
 
 void showSnackbar(context, color, message) {
   ScaffoldMessenger.of(context).showSnackBar(

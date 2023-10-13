@@ -19,7 +19,9 @@ void main() async {
           apiKey: ApiConstants.apiKey,
           appId: ApiConstants.appId,
           messagingSenderId: ApiConstants.messagingSenderId,
-          projectId: ApiConstants.projectId),
+          projectId: ApiConstants.projectId,
+          storageBucket: ApiConstants.storageBucket,
+      ),
     );
   } else {
     await Firebase.initializeApp();

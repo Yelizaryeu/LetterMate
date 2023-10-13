@@ -8,3 +8,5 @@ export 'message_bubble.dart';
 export 'chat_text_field.dart';
 export 'chat_tile.dart';
 export 'message_tile.dart';
+export 'typing_indicator.dart';
+export 'simple_typing_indicator.dart';

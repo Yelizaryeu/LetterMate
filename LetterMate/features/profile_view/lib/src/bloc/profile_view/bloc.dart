@@ -14,22 +14,34 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final DatabaseRepository databaseRepository;
 
   ProfileBloc({required this.databaseRepository}) : super(ProfileEmptyState()) {
-    on<ProfileFetchedEvent>(_fetchUserData);
     on<ProfileUpdateEvent>(_updateUserData);
     on<ProfileAvatarEvent>(_updateUserAvatar);
+    on<ProfileFetchedEvent>(_fetchUserData);
+    on<ProfileDeleteEvent>(_deleteUserAccount);
   }
 
   _updateUserData(ProfileUpdateEvent event, Emitter<ProfileState> emit) async {
-    await databaseRepository.updateUserData(event.userEntity);
+    //UserEntity user = await databaseRepository.getUserData();
+    // user.uuid = event.uuid;
+    // user.displayName = event.name;
+    print('updating user in bloc');
+    await databaseRepository.updateUserName(event.userEntity.displayName);
+    await databaseRepository.updateUserUUID(event.userEntity.uuid);
   }
 
   _updateUserAvatar(ProfileAvatarEvent event, Emitter<ProfileState> emit) async {
-    await databaseRepository.updateUserAvatar(event.userEntity, event.avatar, event.path);
+    await databaseRepository.updateUserAvatar(event.avatar, event.path);
+  }
+
+  _deleteUserAccount(ProfileDeleteEvent event, Emitter<ProfileState> emit) async {
+    await databaseRepository.deleteUserAccount();
   }
 
   _fetchUserData(ProfileFetchedEvent event, Emitter<ProfileState> emit) async {
     emit(ProfileLoadingState());
-    UserEntity userData = await databaseRepository.getUserData(event.uid);
+    print('getting user data');
+    UserEntity userData = await databaseRepository.getUserData();
+    print('got this: ${userData.uuid } ${userData.displayName}' );
     //final currentUserData = event.userEntity;
     //await databaseRepository.updateUserData(currentUserData);
     //UserEntity userData = await databaseRepository.getUserData(currentUserData.uid);

@@ -1,18 +1,23 @@
+import 'package:core/di/app_di.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:navigation/navigation.dart';
+import 'package:data/providers/database_service.dart';
+import 'package:data/entity/chat/chat_entity.dart';
 
 class ChatTile extends StatefulWidget {
-  final String userName;
+  String userName;
   final String chatId;
-  final String chatName;
-  String? resentMessage;
-  String? resentMessageSender;
+  String chatName;
+  String? recentMessage;
+  int? recentMessageTime;
+  String? recentMessageSender;
 
   ChatTile(
       {Key? key,
-        this.resentMessageSender,
-        this.resentMessage,
+        this.recentMessageSender,
+        this.recentMessage,
+        this.recentMessageTime,
         required this.chatId,
         required this.chatName,
         required this.userName,
@@ -24,13 +29,23 @@ class ChatTile extends StatefulWidget {
 }
 
 class _ChatTileState extends State<ChatTile> {
-  String? resentMessageSender;
-  String? resentMessage;
+  String? recentMessageSender;
+  String? recentMessage;
+  DatabaseService databaseService = appLocator<DatabaseService>();
 
   _ChatTileState();
 
   @override
+  void initState() {
+    getRecentMessage(widget.chatId);
+    getChatName(widget.chatId);
+
+  }
+
+  @override
   Widget build(BuildContext context) {
+    getRecentMessage(widget.chatId);
+    getChatName(widget.chatId);
     return GestureDetector(
       onTap: () {
         context.pushRoute(
@@ -54,15 +69,67 @@ class _ChatTileState extends State<ChatTile> {
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(5.0),),),
           title: Text(
-            widget.resentMessageSender ?? widget.chatName,
+            widget.chatName,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: Text(
-            widget.resentMessage ?? "Join the conversation as ${widget.userName}",
-            style: const TextStyle(fontSize: 13),
-          ),
+          subtitle: formatResentMessage(widget.recentMessage, widget.recentMessageTime, widget.recentMessageSender),),
         ),
-      ),
+      );
+  }
+
+  getRecentMessage(String chatId) async {
+    ChatEntity? chatEntity = await databaseService.getChat(chatId);
+    if (chatEntity != null) {
+      setState(() {
+        widget.recentMessage = chatEntity.recentMessage;
+        widget.recentMessageTime = chatEntity.recentMessageTime;
+        widget.recentMessageSender = chatEntity.recentMessageSender;
+      });
+    }
+  }
+
+  getChatName(String chatId) async {
+    List<dynamic> members = await databaseService.getChatMembers(chatId);
+    if (members[0]['name'] == widget.userName) {
+      setState(() {
+        widget.chatName = members[1]['name'];
+      });
+    } else {
+      setState(() {
+        widget.chatName = members[0]['name'];
+      });
+    }
+  }
+
+  Widget formatResentMessage(String? message, int? time, String? messageSender) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          messageSender == widget.userName
+          ? message ?? "Joined as ${widget.userName}"
+          : '$messageSender: $message',
+          style: const TextStyle(fontSize: 13),
+        ),
+        Text(
+          time != null
+              ? messageDate(time)
+              : '',
+          style: const TextStyle(fontSize: 13),
+        ),
+      ],
     );
   }
+
+  String messageDate(int time) {
+    final messageSendTime = DateTime.fromMillisecondsSinceEpoch(time);
+    if ((DateTime.now().millisecondsSinceEpoch - time) < 20000) {
+      return "now";
+    } else if ((DateTime.now().millisecondsSinceEpoch - time) < 86400000) {
+      return "${messageSendTime.hour}:${messageSendTime.minute}";
+    } else {
+      return "${messageSendTime.day}/${messageSendTime.month}/${messageSendTime.year}";
+    }
+  }
+
 }
