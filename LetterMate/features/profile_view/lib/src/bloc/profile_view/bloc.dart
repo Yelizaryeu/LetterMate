@@ -1,51 +1,92 @@
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
-import 'package:core/di/locator_service.dart';
-import 'package:domain/repositories/database_repository.dart';
-import 'package:data/entity/user/user_entity.dart';
+import 'package:domain/domain.dart';
+import 'package:domain/usecases/update_avatar_usecase.dart';
+import 'package:domain/usecases/usecase.dart';
 import 'package:equatable/equatable.dart';
 
 part 'event.dart';
 part 'state.dart';
 
-
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final DatabaseRepository databaseRepository;
+  final UpdateUserData _updateUserData;
+  final UpdateUserAvatar _updateUserAvatar;
+  final GetUserData _getUserData;
+  final DeleteUserUseCase _deleteUserUseCase;
 
-  ProfileBloc({required this.databaseRepository}) : super(ProfileEmptyState()) {
-    on<ProfileUpdateEvent>(_updateUserData);
-    on<ProfileAvatarEvent>(_updateUserAvatar);
-    on<ProfileFetchedEvent>(_fetchUserData);
-    on<ProfileDeleteEvent>(_deleteUserAccount);
+  ProfileBloc({
+    required UpdateUserData updateUserData,
+    required UpdateUserAvatar updateUserAvatar,
+    required GetUserData getUserData,
+    required DeleteUserUseCase deleteUserUseCase,
+  })  : _updateUserData = updateUserData,
+        _updateUserAvatar = updateUserAvatar,
+        _getUserData = getUserData,
+        _deleteUserUseCase = deleteUserUseCase,
+        super(
+          const ProfileState(
+            displayName: '',
+            uuid: '',
+            photoURL: '',
+          ),
+        ) {
+    on<ProfileInitEvent>(_onProfileInitEvent);
+    on<ProfileUpdateEvent>(_onProfileUpdateEvent);
+    on<ProfileAvatarEvent>(_onProfileAvatarEvent);
+    on<ProfileDeleteEvent>(_onDeleteUserEvent);
+    add(ProfileInitEvent());
   }
 
-  _updateUserData(ProfileUpdateEvent event, Emitter<ProfileState> emit) async {
-    //UserEntity user = await databaseRepository.getUserData();
-    // user.uuid = event.uuid;
-    // user.displayName = event.name;
-    print('updating user in bloc');
-    await databaseRepository.updateUserName(event.userEntity.displayName);
-    await databaseRepository.updateUserUUID(event.userEntity.uuid);
+  Future<void> _onProfileInitEvent(
+    ProfileInitEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final UserModel user = await _getUserData.execute(const NoParams());
+    emit(
+      state.copyWith(
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        uuid: user.uuid,
+      ),
+    );
   }
 
-  _updateUserAvatar(ProfileAvatarEvent event, Emitter<ProfileState> emit) async {
-    await databaseRepository.updateUserAvatar(event.avatar, event.path);
+  Future<void> _onProfileUpdateEvent(
+    ProfileUpdateEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final UserModel user = await _getUserData.execute(const NoParams());
+    user.displayName = event.displayName;
+    user.uuid = event.uuid;
+    print('updating to this user: ${user.displayName}');
+    _updateUserData.execute(user);
+    emit(
+      state.copyWith(
+        displayName: event.displayName,
+        uuid: event.uuid,
+      ),
+    );
   }
 
-  _deleteUserAccount(ProfileDeleteEvent event, Emitter<ProfileState> emit) async {
-    await databaseRepository.deleteUserAccount();
+  Future<void> _onDeleteUserEvent(
+    ProfileDeleteEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    _deleteUserUseCase.execute(const NoParams());
   }
 
-  _fetchUserData(ProfileFetchedEvent event, Emitter<ProfileState> emit) async {
-    emit(ProfileLoadingState());
-    print('getting user data');
-    UserEntity userData = await databaseRepository.getUserData();
-    print('got this: ${userData.uuid } ${userData.displayName}' );
-    //final currentUserData = event.userEntity;
-    //await databaseRepository.updateUserData(currentUserData);
-    //UserEntity userData = await databaseRepository.getUserData(currentUserData.uid);
-    emit(ProfileLoadedState(userData));
+  Future<void> _onProfileAvatarEvent(
+    ProfileAvatarEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    await _updateUserAvatar.execute(event.avatar);
+    final UserModel user = await _getUserData.execute(const NoParams());
+    emit(
+      state.copyWith(
+        photoURL: user.photoURL,
+      ),
+    );
   }
 }
 

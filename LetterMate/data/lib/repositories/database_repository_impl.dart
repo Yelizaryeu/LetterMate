@@ -5,9 +5,9 @@ import 'package:core/di/app_di.dart';
 import 'package:data/entity/chat/chat_entity.dart';
 import 'package:domain/models/user/user_model.dart';
 import 'package:domain/repositories/database_repository.dart';
+
 import '../entity/user/user_entity.dart';
 import '../providers/database_service.dart';
-
 
 class DatabaseRepositoryImpl implements DatabaseRepository {
   DatabaseService databaseService = appLocator<DatabaseService>();
@@ -16,7 +16,7 @@ class DatabaseRepositoryImpl implements DatabaseRepository {
 
   @override
   Future<void> updateUserData(UserModel user) async {
-    print ('updating user in repository');
+    print('updating user in repository');
     return await databaseService.updateUserData(user as UserEntity);
   }
 
@@ -31,9 +31,9 @@ class DatabaseRepositoryImpl implements DatabaseRepository {
   // }
 
   @override
-  Future<void> updateUserAvatar(File file, String path) async {
+  Future<void> updateUserAvatar(File file) async {
     print('updating photo in repository');
-    return await databaseService.updateUserPhoto(file, path);
+    return await databaseService.updateUserPhoto(file);
   }
 
   @override
@@ -70,5 +70,4 @@ class DatabaseRepositoryImpl implements DatabaseRepository {
   Future<void> updateUserUUID(String uuid) async {
     databaseService.updateUserUUID(uuid);
   }
-
 }

@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data/entity/chat/chat_entity.dart';
 import 'package:data/entity/chat_member/chat_member_entity.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+
 import '../entity/user/user_entity.dart';
 
 class DatabaseService {
@@ -19,7 +19,6 @@ class DatabaseService {
   final CollectionReference chatCollection = FirebaseFirestore.instance.collection("chats");
   final _firebaseMessaging = FirebaseMessaging.instance;
 
-
   //init push notification
   Future initPushNotification() async {
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
@@ -30,26 +29,27 @@ class DatabaseService {
   }
 
   // get fCMToken for current user
-  Future<String> getFCMToken () async {
+  Future<String> getFCMToken() async {
     await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
     return fCMToken!;
   }
 
-  Future<void> initNotifications () async {
+  Future<void> initNotifications() async {
     final fCMToken = await getFCMToken();
     print("Token: $fCMToken");
     initPushNotification();
   }
 
   // send push notification to specified fCMToken
-  Future<void> sendPushMessage (String token, String body, String title) async {
+  Future<void> sendPushMessage(String token, String body, String title) async {
     try {
       await http.post(
         Uri.parse("https://fcm.googleapis.com/fcm/send"),
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAo1yfBzc:APA91bHbzryHl58Whkp5LtjeggzlXckMnd-rl5obhpivxi9IlQgDBrTfYLYMzdNeQkOgsqJ1aFiRPEb3vXBVeRHjPbKVKz7dDM6MEDrA2ozjxWNowRxq8si3SDUdmr2YV_8nHxHwzxGF'
+          'Authorization':
+              'key=AAAAo1yfBzc:APA91bHbzryHl58Whkp5LtjeggzlXckMnd-rl5obhpivxi9IlQgDBrTfYLYMzdNeQkOgsqJ1aFiRPEb3vXBVeRHjPbKVKz7dDM6MEDrA2ozjxWNowRxq8si3SDUdmr2YV_8nHxHwzxGF'
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -69,10 +69,7 @@ class DatabaseService {
           },
         ),
       );
-    } catch (e) {
-
-    }
-
+    } catch (e) {}
   }
 
   // update user data with given userEntity and update it's entities in chats
@@ -85,21 +82,28 @@ class DatabaseService {
         // if (chatEntity!.recentMessageSender == userEntity.displayName) {
         //   await chatCollection.doc(getId(chat)).update({'recentMessageSender': userEntity.displayName});
         // }
-        await updateChatMember(getId(chat), ChatMemberEntity(
-            uid: userEntity.uid, uuid: userEntity.uuid, name: userEntity.displayName,
-            fCMToken: userEntity.fCMToken, isTyping: 'false'));
+        await updateChatMember(
+            getId(chat),
+            ChatMemberEntity(
+                uid: userEntity.uid,
+                uuid: userEntity.uuid,
+                name: userEntity.displayName,
+                fCMToken: userEntity.fCMToken,
+                isTyping: 'false'));
         await updateChatMessagesSender(getId(chat), uid, userEntity.displayName);
       }
     }
   }
 
   Future<void> updateUserName(String name) async {
+    print('updating name to this: $name');
     await userCollection.doc(uid).update({'displayName': name});
     final user = await getUserData();
     await updateUserData(user);
   }
 
   Future<void> updateUserUUID(String uuid) async {
+    print('updating uuid to this: $uuid');
     await userCollection.doc(uid).update({'uuid': uuid});
     final user = await getUserData();
     await updateUserData(user);
@@ -111,7 +115,8 @@ class DatabaseService {
   }
 
   // update user photoURL, upload photo to firebase storage and set downloadURL to photoURL field
-  Future<void> updateUserPhoto(File file, String path) async {
+  Future<void> updateUserPhoto(File file) async {
+    final path = '$uid/files/avatar/';
     print('updating photo in database service');
     await FirebaseStorage.instance.ref().child(path).putFile(file);
     print('put photo in storage');
@@ -131,12 +136,13 @@ class DatabaseService {
     if (doc.data() == null) {
       String photoURL = await FirebaseStorage.instance.ref('default_profile.jpg').getDownloadURL();
       print(photoURL);
-      user = UserEntity(uuid: uid,
-          uid: uid,
-          displayName: 'Anon',
-          photoURL: photoURL,
-          chats: [],
-          fCMToken: '',
+      user = UserEntity(
+        uuid: uid,
+        uid: uid,
+        displayName: 'Anon',
+        photoURL: photoURL,
+        chats: [],
+        fCMToken: '',
       );
       user.fCMToken = await getFCMToken();
       await DatabaseService(uid: uid).updateUserData(user);
@@ -154,31 +160,47 @@ class DatabaseService {
   }
 
   //get userEntity by given uuid
-  Future<UserEntity> getUserById(String uuid) async {
-    final doc = await userCollection.where("uuid", isEqualTo: uuid).get();
-    final userData = doc.docs.first.data() as Map<String, dynamic>;
-    final user = UserEntity.fromJson(userData);
-    return user;
+  // Future<UserEntity> getUserById(String uuid) async {
+  //   final doc = await userCollection.where("uuid", isEqualTo: uuid).get();
+  //   final userData = doc.docs.first.data() as Map<String, dynamic>;
+  //   final user = UserEntity.fromJson(userData);
+  //   return user;
+  // }
+
+  Future<UserEntity> getUserByUuid(String uuid) async {
+    final Query<Object?> query = userCollection.where(
+      'uuid',
+      isEqualTo: uuid,
+    );
+    final QuerySnapshot<Object?> data = await query.get();
+
+    return UserEntity.fromJson(data.docs.first.data() as Map<String, dynamic>);
   }
 
   // creating a chat
   Future createChat(String userName, String companionId) async {
-    final companion = await getUserById(companionId);
+    final companion = await getUserByUuid(companionId);
     final currentUser = await getUserData();
     final currentUserMember = ChatMemberEntity(
-        uid: currentUser.uid, uuid: currentUser.uuid, name: currentUser.displayName, fCMToken: currentUser.fCMToken, isTyping: 'false');
+        uid: currentUser.uid,
+        uuid: currentUser.uuid,
+        name: currentUser.displayName,
+        fCMToken: currentUser.fCMToken,
+        isTyping: 'false');
     final companionMember = ChatMemberEntity(
-        uid: companion.uid, uuid: companion.uuid, name: companion.displayName, fCMToken: companion.fCMToken, isTyping: 'false');
-    DocumentReference chatDocumentReference = await chatCollection.add(
-        ChatEntity(
-          chatId: "",
-          chatIcon: "",
-          members: [currentUserMember.toJson(), companionMember.toJson()],
-          recentMessage: "",
-          recentMessageSender: "",
-          recentMessageTime: null,
-        ).toJson()
-    );
+        uid: companion.uid,
+        uuid: companion.uuid,
+        name: companion.displayName,
+        fCMToken: companion.fCMToken,
+        isTyping: 'false');
+    DocumentReference chatDocumentReference = await chatCollection.add(ChatEntity(
+      chatId: "",
+      chatIcon: "",
+      members: [currentUserMember.toJson(), companionMember.toJson()],
+      recentMessage: "",
+      recentMessageSender: "",
+      recentMessageTime: null,
+    ).toJson());
 
     // update the members
 
@@ -233,7 +255,6 @@ class DatabaseService {
       }
     }
     await chatCollection.doc(chatId).update({'members': members});
-
   }
 
   // update sender in messages
@@ -241,11 +262,14 @@ class DatabaseService {
     final doc = await chatCollection.doc(chatId).collection('messages').get();
     final messages = doc.docs;
     for (var doc in messages) {
-     Map<String, dynamic> message = doc.data();
-     if (message['senderId'] == uid) {
-       await chatCollection.doc(chatId).collection("messages")
-           .doc(message['time'].toString()).update({'sender': sender});
-     }
+      Map<String, dynamic> message = doc.data();
+      if (message['senderId'] == uid) {
+        await chatCollection
+            .doc(chatId)
+            .collection("messages")
+            .doc(message['time'].toString())
+            .update({'sender': sender});
+      }
     }
   }
 
@@ -263,7 +287,7 @@ class DatabaseService {
   }
 
   // send message
-  sendMessage(String chatId,Map<String, dynamic> chatMessageData) async {
+  sendMessage(String chatId, Map<String, dynamic> chatMessageData) async {
     chatMessageData['senderId'] = uid;
     chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
     chatCollection.doc(chatId).update({
@@ -274,7 +298,8 @@ class DatabaseService {
     List<dynamic> members = await getChatMembers(chatId);
     for (Map<String, dynamic> member in members) {
       if (member['name'] != chatMessageData['sender']) {
-        sendPushMessage(member['fCMToken'], chatMessageData['message'], "New message from ${chatMessageData['sender']}");
+        sendPushMessage(
+            member['fCMToken'], chatMessageData['message'], "New message from ${chatMessageData['sender']}");
       }
     }
   }
@@ -293,7 +318,8 @@ class DatabaseService {
     List<dynamic> members = await getChatMembers(chatId);
     for (Map<String, dynamic> member in members) {
       if (member['name'] != chatMessageData['sender']) {
-        sendPushMessage(member['fCMToken'], chatMessageData['messageType'], "New message from ${chatMessageData['sender']}");
+        sendPushMessage(
+            member['fCMToken'], chatMessageData['messageType'], "New message from ${chatMessageData['sender']}");
       }
     }
   }
@@ -323,7 +349,9 @@ class DatabaseService {
     final members = data["members"];
     for (Map<String, dynamic> member in members) {
       if (member['name'] == userName) {
-        await userCollection.doc(member['uid']).update({'chats': FieldValue.arrayRemove(["${chatId}_$chatName"])});
+        await userCollection.doc(member['uid']).update({
+          'chats': FieldValue.arrayRemove(["${chatId}_$chatName"])
+        });
       } else {
         await userCollection.doc(member['uid']).update({
           'chats': FieldValue.arrayRemove(["${chatId}_$userName"]),
@@ -331,8 +359,10 @@ class DatabaseService {
       }
     }
     await chatCollection.doc(chatId).collection('messages').get().then((value) => {
-      value.docs.forEach((element) {element.reference.delete();})
-    });
+          value.docs.forEach((element) {
+            element.reference.delete();
+          })
+        });
     await chatCollection.doc(chatId).delete();
   }
 
@@ -340,13 +370,13 @@ class DatabaseService {
   String getId(String res) {
     return res.substring(0, res.indexOf("_"));
   }
-  
+
   deleteAccount() async {
     UserEntity user = await getUserData();
     if (user.chats != [] && user.chats != null) {
       for (String chat in user!.chats!) {
         List<dynamic> members = await getChatMembers(getId(chat));
-        if(members[0]['uid'] == user.uid) {
+        if (members[0]['uid'] == user.uid) {
           await deleteChat(getId(chat), members[1]['name'], members[0]['name']);
         } else {
           await deleteChat(getId(chat), members[0]['name'], members[1]['name']);
@@ -361,6 +391,4 @@ class DatabaseService {
       exit(0);
     }
   }
-
-
 }
