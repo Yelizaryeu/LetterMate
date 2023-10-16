@@ -1,34 +1,20 @@
 part of 'bloc.dart';
 
-abstract class ProfileEvent extends Equatable {
+abstract class ProfileEvent {
   const ProfileEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
-class ProfileFetchedEvent extends ProfileEvent {
-  final String uid;
-  const ProfileFetchedEvent(this.uid);
-
-  @override
-  List<Object?> get props => [uid];
-}
+class ProfileInitEvent extends ProfileEvent {}
 
 class ProfileUpdateEvent extends ProfileEvent {
-  final UserEntity userEntity;
-  const ProfileUpdateEvent(this.userEntity);
-
-  @override
-  List<Object?> get props => [userEntity];
+  final String displayName;
+  final String uuid;
+  const ProfileUpdateEvent(this.displayName, this.uuid);
 }
 
-class ProfileAvatarEvent extends ProfileEvent {
-  final UserEntity userEntity;
-  final File avatar;
-  final String path;
-  const ProfileAvatarEvent(this.userEntity, this.avatar, this.path);
+class ProfileDeleteEvent extends ProfileEvent {}
 
-  @override
-  List<Object?> get props => [avatar];
+class ProfileAvatarEvent extends ProfileEvent {
+  final File avatar;
+  const ProfileAvatarEvent(this.avatar);
 }

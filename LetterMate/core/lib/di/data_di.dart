@@ -1,14 +1,11 @@
-import 'package:data/entity/user/user_entity.dart';
-import 'package:data/errors/error_handler.dart';
+import 'package:chat_view/chat_view.dart';
 import 'package:data/providers/database_service.dart';
 import 'package:data/repositories/database_repository_impl.dart';
 import 'package:domain/domain.dart';
-import 'package:domain/repositories/database_repository.dart';
-import 'package:domain/usecases/export_usecases.dart';
+import 'package:domain/usecases/update_avatar_usecase.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:profile_view/profile_view.dart';
-import 'package:chat_view/chat_view.dart';
 
-import '../services/auth.dart';
 import 'app_di.dart';
 
 final DataDI dataDI = DataDI();
@@ -28,8 +25,10 @@ class DataDI {
     // appLocator.registerSingleton<UserEntity>(currentUser, instanceName: 'currentUser',);
 
     appLocator.registerLazySingleton<DatabaseService>(
-      () => DatabaseService(),
+      () => DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid),
     );
+
+    await appLocator<DatabaseService>().initNotifications();
   }
 
   Future _initChats() async {
@@ -40,31 +39,44 @@ class DataDI {
     );
 
     //Profile BLoC
-     appLocator.registerFactory(
-           () => ProfileBloc(databaseRepository: appLocator(),),
-     );
-
-     //Chat BLoC
     appLocator.registerFactory(
-          () => ChatBloc(databaseRepository: appLocator(),),
+      () => ProfileBloc(
+        updateUserData: appLocator(),
+        updateUserAvatar: appLocator(),
+        getUserData: appLocator(),
+        deleteUserUseCase: appLocator(),
+      ),
     );
 
-    appLocator.registerLazySingleton<UpdateCurrentUser>(
-      () => UpdateCurrentUser(
+    //Chat BLoC
+    appLocator.registerFactory(
+      () => ChatBloc(
+        databaseRepository: appLocator(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<UpdateUserData>(
+      () => UpdateUserData(
         databaseRepository: appLocator.get<DatabaseRepository>(),
       ),
     );
-    //
-    // appLocator.registerLazySingleton<FetchSearchAlbumsUseCase>(
-    //   () => FetchSearchAlbumsUseCase(
-    //     albumsRepository: appLocator.get<AlbumsRepository>(),
-    //   ),
-    // );
-    //
-    // appLocator.registerLazySingleton<FetchAlbumPicturesUseCase>(
-    //   () => FetchAlbumPicturesUseCase(
-    //     albumsRepository: appLocator.get<AlbumsRepository>(),
-    //   ),
-    // );
+
+    appLocator.registerLazySingleton<UpdateUserAvatar>(
+      () => UpdateUserAvatar(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<DeleteUserUseCase>(
+      () => DeleteUserUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<GetUserData>(
+      () => GetUserData(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
   }
 }

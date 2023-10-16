@@ -16,7 +16,7 @@ class AuthService {
       print('${userCred.user!.uid}');
 
       //await DatabaseService(uid: userCred.user!.uid).updateUserPhoto(File('assets/images/default_profile.jpg'), '${userCred.user!.uid}/files/avatar');
-      UserEntity userEntity = await DatabaseService(uid: userCred.user!.uid).getUserData(userCred.user!.uid);
+      UserEntity userEntity = await DatabaseService(uid: userCred.user!.uid).getUserData();
       return userEntity;
     } catch (e) {
       print(e.toString());

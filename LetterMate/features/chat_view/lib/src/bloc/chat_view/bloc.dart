@@ -21,7 +21,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   _updateChatData(ChatUpdateEvent event, Emitter<ChatState> emit) async {
-    await databaseRepository.updateUserChats(event.chatEntity);
+    await databaseRepository.updateChatData(event.chatEntity);
   }
 
   _sendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
@@ -31,13 +31,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   _fetchChatData(ChatFetchedEvent event, Emitter<ChatState> emit) async {
     emit(ChatLoadingState());
     print('trying to get chatEntity');
-    ChatEntity chatEntity = await databaseRepository.getUserChat(event.chatId);
-    print('got this entity: ${chatEntity.chatName}');
+    ChatEntity? chatEntity = await databaseRepository.getUserChat(event.chatId);
+    //print('got this entity: ${chatEntity.chatId}');
     //final currentUserData = event.userEntity;
     //await databaseRepository.updateUserData(currentUserData);
     //UserEntity userData = await databaseRepository.getUserData(currentUserData.uid);
     print('emitting loaded state');
-    emit(ChatLoadedState(chatEntity));
+    //emit(ChatLoadedState(chatEntity));
   }
 }
 

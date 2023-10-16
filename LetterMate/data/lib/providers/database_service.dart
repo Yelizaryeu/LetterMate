@@ -1,255 +1,394 @@
+import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data/entity/chat/chat_entity.dart';
-import 'package:domain/models/user/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:data/entity/chat_member/chat_member_entity.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import '../entity/message/message_entity.dart';
+import 'package:http/http.dart' as http;
+
 import '../entity/user/user_entity.dart';
-import 'package:core/services/firebase_firestore_service.dart';
 
-class DatabaseService extends ChangeNotifier {
-  final String? uid;
-  ScrollController scrollController = ScrollController();
-  List<UserModel> users = [];
-  UserModel? user;
-  List<MessageEntity> messages = [];
-  List<UserModel> search = [];
+class DatabaseService {
+  final String uid;
 
-
-  DatabaseService({this.uid});
-
+  DatabaseService({required this.uid});
 
   final CollectionReference userCollection = FirebaseFirestore.instance.collection('users');
   final CollectionReference chatCollection = FirebaseFirestore.instance.collection("chats");
+  final _firebaseMessaging = FirebaseMessaging.instance;
 
-
-  Future<void> updateUserData(UserEntity userEntity) async {
-    return await userCollection.doc(userEntity.uid).set(userEntity.toJson());
-
-    // return await userCollection.doc(uid).set({
-    //   "displayName" : userModel.displayName,
-    //   "photoURL" : userModel.photoURL,
-    //   "chats" : [],
-    // });
+  //init push notification
+  Future initPushNotification() async {
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
   }
 
-  Future<void> updateUserChat(ChatEntity chatEntity) async {
+  // get fCMToken for current user
+  Future<String> getFCMToken() async {
+    await _firebaseMessaging.requestPermission();
+    final fCMToken = await _firebaseMessaging.getToken();
+    return fCMToken!;
+  }
+
+  Future<void> initNotifications() async {
+    final fCMToken = await getFCMToken();
+    print("Token: $fCMToken");
+    initPushNotification();
+  }
+
+  // send push notification to specified fCMToken
+  Future<void> sendPushMessage(String token, String body, String title) async {
+    try {
+      await http.post(
+        Uri.parse("https://fcm.googleapis.com/fcm/send"),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization':
+              'key=AAAAo1yfBzc:APA91bHbzryHl58Whkp5LtjeggzlXckMnd-rl5obhpivxi9IlQgDBrTfYLYMzdNeQkOgsqJ1aFiRPEb3vXBVeRHjPbKVKz7dDM6MEDrA2ozjxWNowRxq8si3SDUdmr2YV_8nHxHwzxGF'
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+              'body': body,
+              'title': title,
+            },
+            'notification': <String, dynamic>{
+              'title': title,
+              'body': body,
+              'android_channed_id': 'dbfood',
+            },
+            'to': token,
+          },
+        ),
+      );
+    } catch (e) {}
+  }
+
+  // update user data with given userEntity and update it's entities in chats
+  Future<void> updateUserData(UserEntity userEntity) async {
+    print('updating user in database service');
+    await userCollection.doc(userEntity.uid).set(userEntity.toJson());
+    if (userEntity.chats != [] && userEntity.chats != null) {
+      for (String chat in userEntity!.chats!) {
+        ChatEntity? chatEntity = await getChat(getId(chat));
+        // if (chatEntity!.recentMessageSender == userEntity.displayName) {
+        //   await chatCollection.doc(getId(chat)).update({'recentMessageSender': userEntity.displayName});
+        // }
+        await updateChatMember(
+            getId(chat),
+            ChatMemberEntity(
+                uid: userEntity.uid,
+                uuid: userEntity.uuid,
+                name: userEntity.displayName,
+                fCMToken: userEntity.fCMToken,
+                isTyping: 'false'));
+        await updateChatMessagesSender(getId(chat), uid, userEntity.displayName);
+      }
+    }
+  }
+
+  Future<void> updateUserName(String name) async {
+    print('updating name to this: $name');
+    await userCollection.doc(uid).update({'displayName': name});
+    final user = await getUserData();
+    await updateUserData(user);
+  }
+
+  Future<void> updateUserUUID(String uuid) async {
+    print('updating uuid to this: $uuid');
+    await userCollection.doc(uid).update({'uuid': uuid});
+    final user = await getUserData();
+    await updateUserData(user);
+  }
+
+  // update chat in chatCollection with given chatEntity
+  Future<void> updateChatData(ChatEntity chatEntity) async {
     return await chatCollection.doc(chatEntity.chatId).set(chatEntity.toJson());
   }
 
-  Future updateUserPhoto(UserEntity userEntity, File file, String path) async {
+  // update user photoURL, upload photo to firebase storage and set downloadURL to photoURL field
+  Future<void> updateUserPhoto(File file) async {
+    final path = '$uid/files/avatar/';
+    print('updating photo in database service');
     await FirebaseStorage.instance.ref().child(path).putFile(file);
-    userEntity.photoURL = await FirebaseStorage.instance.ref(path).getDownloadURL();
-    await updateUserData(userEntity);
+    print('put photo in storage');
+    await userCollection.doc(uid).update({'photoURL': await FirebaseStorage.instance.ref(path).getDownloadURL()});
+    print('updated user photoURL');
+    final user = await getUserData();
+    print('updated photo and now update userdata');
+    return await updateUserData(user);
   }
 
-
-  // get user data
-  Future<UserEntity> getUserData(String uid) async {
+  // get UserEntity for current user
+  Future<UserEntity> getUserData() async {
     final DocumentSnapshot doc = await userCollection.doc(uid).get();
     UserEntity user;
-    // if ((doc.data() as Map<String, dynamic>)['photoURL'] == ''){
-    //   await updateUserPhoto(File('assets/images/default_profile.jpg'), '$uid/files/avatar');
-    // }
+
+    print('getting user data');
     if (doc.data() == null) {
-      user = UserEntity(uuid: uid, uid: uid, displayName: 'Anon', photoURL: '', chats: []);
+      String photoURL = await FirebaseStorage.instance.ref('default_profile.jpg').getDownloadURL();
+      print(photoURL);
+      user = UserEntity(
+        uuid: uid,
+        uid: uid,
+        displayName: 'Anon',
+        photoURL: photoURL,
+        chats: [],
+        fCMToken: '',
+      );
+      user.fCMToken = await getFCMToken();
       await DatabaseService(uid: uid).updateUserData(user);
     } else {
-      user = UserEntity.fromJson(doc.data() as Map<String, dynamic>, uid);
+      user = UserEntity.fromJson(doc.data() as Map<String, dynamic>);
+      user.fCMToken = await getFCMToken();
+      await DatabaseService(uid: uid).updateUserData(user);
     }
-    print('got this user: $user');
-    print('trying to update avatar to this file: ${user.photoURL}');
-    if (user.photoURL == ''){
-      user.photoURL = await FirebaseStorage.instance.ref('default_profile.jpg').getDownloadURL();
-    }
-    //await updateUserPhoto(File(user.photoURL), '$uid/files/avatar');
-    print('updated avatar');
-    print('trying to get avatar url');
-    //user.photoURL = await FirebaseStorage.instance.ref('$uid/files/avatar').getDownloadURL();
-    //print('trying to update photourl in firestore');
-    await updateUserData(user);
-    print('updated photourl in firestore');
-    //user.photoURL = await FirebaseStorage.instance.ref('$uid/files/avatar').getDownloadURL();
-    // if (user.photoURL == '' || user.photoURL == null) {
-    //   await updateUserPhoto(File('gs://lettermate-ed713.appspot.com/default_profile.jpg'), '${user.uid}/files/avatar');
-    // }
-    //user.photoURL = 'assets/images/default_profile.jpg';
     return user;
   }
 
-  //getting user data
-  // Future gettingUserData(String uid) async {
-  //   QuerySnapshot snapshot =
-  //   await userCollection.where("uid", isEqualTo: uid).get();
-  //   Uint8List? avatar = await FirebaseStorage.instance.ref('$uid/files/avatar').getData();
-  //   return UserEntity.fromJson(snapshot as Map<String, dynamic>, uid);
-  //
-  //   // QuerySnapshot<Map<String, dynamic>> snapshot =
-  //   // await userCollection.where("uid", isEqualTo: uid).get();
-  //   // return snapshot.docs
-  //   //     .map((docSnapshot) => UserModel.fromDocumentSnapshot(docSnapshot))
-  //   //     .toList();
-  // }
-
-  // get user chats
-  getUserChats() async  {
+  // getting a stream of userCollection
+  gettingUserData() async {
     return userCollection.doc(uid).snapshots();
   }
 
+  //get userEntity by given uuid
+  // Future<UserEntity> getUserById(String uuid) async {
+  //   final doc = await userCollection.where("uuid", isEqualTo: uuid).get();
+  //   final userData = doc.docs.first.data() as Map<String, dynamic>;
+  //   final user = UserEntity.fromJson(userData);
+  //   return user;
+  // }
+
+  Future<UserEntity> getUserByUuid(String uuid) async {
+    final Query<Object?> query = userCollection.where(
+      'uuid',
+      isEqualTo: uuid,
+    );
+    final QuerySnapshot<Object?> data = await query.get();
+
+    return UserEntity.fromJson(data.docs.first.data() as Map<String, dynamic>);
+  }
+
   // creating a chat
-  Future createChat(String userName, String id, String chatName, String companionId) async {
-    DocumentReference chatDocumentReference = await chatCollection.add({
-      "chatName": chatName,
-      "chatIcon": "",
-      "members": [],
-      "chatId": "",
-      "recentMessage": "",
-      "recentMessageSender": "",
-    });
+  Future createChat(String userName, String companionId) async {
+    final companion = await getUserByUuid(companionId);
+    final currentUser = await getUserData();
+    final currentUserMember = ChatMemberEntity(
+        uid: currentUser.uid,
+        uuid: currentUser.uuid,
+        name: currentUser.displayName,
+        fCMToken: currentUser.fCMToken,
+        isTyping: 'false');
+    final companionMember = ChatMemberEntity(
+        uid: companion.uid,
+        uuid: companion.uuid,
+        name: companion.displayName,
+        fCMToken: companion.fCMToken,
+        isTyping: 'false');
+    DocumentReference chatDocumentReference = await chatCollection.add(ChatEntity(
+      chatId: "",
+      chatIcon: "",
+      members: [currentUserMember.toJson(), companionMember.toJson()],
+      recentMessage: "",
+      recentMessageSender: "",
+      recentMessageTime: null,
+    ).toJson());
+
     // update the members
+
     await chatDocumentReference.update({
-      "members": FieldValue.arrayUnion(["$uid", companionId]),
+      //"members": FieldValue.arrayUnion([currentUser.uuid, companionId]),
       "chatId": chatDocumentReference.id,
     });
 
     DocumentReference userDocumentReference = userCollection.doc(uid);
     await userDocumentReference.update({
-      "chats":
-      FieldValue.arrayUnion(["${chatDocumentReference.id}_$chatName"])
+      "chats": FieldValue.arrayUnion(["${chatDocumentReference.id}_${companion.displayName}"])
     });
 
-    DocumentReference companionDocumentReference = userCollection.doc(companionId);
+    DocumentReference companionDocumentReference = userCollection.doc(companion.uid);
     return await companionDocumentReference.update({
-      "chats":
-      FieldValue.arrayUnion(["${chatDocumentReference.id}_$chatName"])
+      "chats": FieldValue.arrayUnion(["${chatDocumentReference.id}_${currentUser.displayName}"])
     });
   }
 
+  // check if there is a doc in userCollection with given uuid
   Future<bool> checkExist(String uuid) async {
-    final DocumentSnapshot doc = await userCollection.doc(uuid).get();
-    if (doc.data() != null) {
+    try {
+      await userCollection.where("uuid", isEqualTo: uuid).get();
       return true;
-    } else {
+    } catch (e) {
       return false;
     }
   }
 
-  // getting the chats
-  getChats(String chatId) async {
-    return chatCollection
-        .doc(chatId)
-        .collection("messages")
-        .orderBy("time")
-        .snapshots();
+  // getting messages in the chat
+  gettingChatMessages(String chatId) async {
+    return chatCollection.doc(chatId).collection("messages").orderBy("time").snapshots();
   }
 
-  Future<ChatEntity> getChat(String chatId) async {
+  // get chat entity
+  Future<ChatEntity?> getChat(String chatId) async {
     final DocumentSnapshot doc = await chatCollection.doc(chatId).get();
-    ChatEntity chatEntity = ChatEntity.fromJson(doc.data() as Map<String, dynamic>);
-    return chatEntity;
+    if (doc.data() != null) {
+      ChatEntity chatEntity = ChatEntity.fromJson(doc.data() as Map<String, dynamic>);
+      return chatEntity;
+    } else {
+      return null;
+    }
   }
 
-  // get chat messages
-  List<MessageEntity> getMessages(String receiverId) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('chat')
-        .doc(receiverId)
-        .collection('messages')
-        .orderBy('sentTime', descending: false)
-        .snapshots(includeMetadataChanges: true)
-        .listen((messages) {
-      this.messages = messages.docs
-          .map((doc) => MessageEntity.fromJson(doc.data()))
-          .toList();
-      notifyListeners();
-
-      scrollDown();
-    });
-    return messages;
+  // update chatMemberEntity in the chat
+  updateChatMember(String chatId, ChatMemberEntity chatMemberEntity) async {
+    List<dynamic> members = await getChatMembers(chatId);
+    for (int i = 0; i <= members.length - 1; i++) {
+      if (chatMemberEntity.uid == members[i]['uid']) {
+        members[i] = chatMemberEntity.toJson();
+      }
+    }
+    await chatCollection.doc(chatId).update({'members': members});
   }
 
-  // get chat members
-  getChatMembers(chatId) async {
+  // update sender in messages
+  updateChatMessagesSender(String chatId, String uid, String sender) async {
+    final doc = await chatCollection.doc(chatId).collection('messages').get();
+    final messages = doc.docs;
+    for (var doc in messages) {
+      Map<String, dynamic> message = doc.data();
+      if (message['senderId'] == uid) {
+        await chatCollection
+            .doc(chatId)
+            .collection("messages")
+            .doc(message['time'].toString())
+            .update({'sender': sender});
+      }
+    }
+  }
+
+  // getting a stream of chat
+  gettingChatMembers(chatId) async {
     return chatCollection.doc(chatId).snapshots();
   }
 
-  // search
-  searchById(String uid) {
-    return chatCollection.where("chatName", isEqualTo: uid).get();
-  }
-
-  // function -> bool
-  Future<bool> isUserJoined(
-      String chatName, String chatId, String userName) async {
-    DocumentReference userDocumentReference = userCollection.doc(uid);
-    DocumentSnapshot documentSnapshot = await userDocumentReference.get();
-
-    List<dynamic> chats = await documentSnapshot['chats'];
-    if (chats.contains("${chatId}_$chatName")) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  // toggling the group join/exit
-  Future toggleChatJoin(
-      String chatId, String userName, String chatName) async {
-    // doc reference
-    DocumentReference userDocumentReference = userCollection.doc(uid);
-    DocumentReference chatDocumentReference = chatCollection.doc(chatId);
-
-    DocumentSnapshot documentSnapshot = await userDocumentReference.get();
-    List<dynamic> chats = await documentSnapshot['chats'];
-
-    // if user has our groups -> then remove then or also in other part re join
-    if (chats.contains("${chatId}_$chatName")) {
-      await userDocumentReference.update({
-        "chats": FieldValue.arrayRemove(["${chatId}_$chatName"])
-      });
-      await chatDocumentReference.update({
-        "members": FieldValue.arrayRemove(["${uid}_$userName"])
-      });
-    } else {
-      await userDocumentReference.update({
-        "chats": FieldValue.arrayUnion(["${chatId}_$chatName"])
-      });
-      await chatDocumentReference.update({
-        "members": FieldValue.arrayUnion(["${uid}_$userName"])
-      });
-    }
+  // get chat members
+  Future<List<dynamic>> getChatMembers(chatId) async {
+    var doc = await chatCollection.doc(chatId).get();
+    var chat = doc.data() as Map<String, dynamic>;
+    List<dynamic> members = chat['members'];
+    return members;
   }
 
   // send message
   sendMessage(String chatId, Map<String, dynamic> chatMessageData) async {
-    chatCollection.doc(chatId).collection("messages").add(chatMessageData);
+    chatMessageData['senderId'] = uid;
+    chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
     chatCollection.doc(chatId).update({
       "recentMessage": chatMessageData['message'],
       "recentMessageSender": chatMessageData['sender'],
-      "recentMessageTime": chatMessageData['time'].toString(),
+      "recentMessageTime": chatMessageData['time'],
     });
+    List<dynamic> members = await getChatMembers(chatId);
+    for (Map<String, dynamic> member in members) {
+      if (member['name'] != chatMessageData['sender']) {
+        sendPushMessage(
+            member['fCMToken'], chatMessageData['message'], "New message from ${chatMessageData['sender']}");
+      }
+    }
   }
 
-  //scroll down method
-  void scrollDown() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.jumpTo(
-              scrollController.position.maxScrollExtent);
+  // send file
+  Future sendUserFile(String chatId, File file, String path, Map<String, dynamic> chatMessageData) async {
+    await FirebaseStorage.instance.ref().child(path).putFile(file);
+    final message = await FirebaseStorage.instance.ref(path).getDownloadURL();
+    chatMessageData["message"] = message;
+    chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
+    chatCollection.doc(chatId).update({
+      "recentMessage": chatMessageData['messageType'],
+      "recentMessageSender": chatMessageData['sender'],
+      "recentMessageTime": chatMessageData['time'],
+    });
+    List<dynamic> members = await getChatMembers(chatId);
+    for (Map<String, dynamic> member in members) {
+      if (member['name'] != chatMessageData['sender']) {
+        sendPushMessage(
+            member['fCMToken'], chatMessageData['messageType'], "New message from ${chatMessageData['sender']}");
+      }
+    }
+  }
+
+  // edit message
+  editMessage(String chatId, String message, String messageId) async {
+    await chatCollection
+        .doc(chatId)
+        .collection("messages")
+        .doc(messageId)
+        .update({'message': message, 'isEdited': true});
+  }
+
+  // delete message in chat
+  deleteMessage(String chatId, String messageId) async {
+    await chatCollection
+        .doc(chatId)
+        .collection("messages")
+        .doc(messageId)
+        .update({'isDeleted': true, 'message': '', 'messageType': ''});
+  }
+
+  // delete chat with all messages
+  deleteChat(String chatId, String chatName, String userName) async {
+    final doc = await chatCollection.doc(chatId).get();
+    final data = doc.data() as Map<String, dynamic>;
+    final members = data["members"];
+    for (Map<String, dynamic> member in members) {
+      if (member['name'] == userName) {
+        await userCollection.doc(member['uid']).update({
+          'chats': FieldValue.arrayRemove(["${chatId}_$chatName"])
+        });
+      } else {
+        await userCollection.doc(member['uid']).update({
+          'chats': FieldValue.arrayRemove(["${chatId}_$userName"]),
+        });
+      }
+    }
+    await chatCollection.doc(chatId).collection('messages').get().then((value) => {
+          value.docs.forEach((element) {
+            element.reference.delete();
+          })
+        });
+    await chatCollection.doc(chatId).delete();
+  }
+
+  // get chatId from user chat[index]
+  String getId(String res) {
+    return res.substring(0, res.indexOf("_"));
+  }
+
+  deleteAccount() async {
+    UserEntity user = await getUserData();
+    if (user.chats != [] && user.chats != null) {
+      for (String chat in user!.chats!) {
+        List<dynamic> members = await getChatMembers(getId(chat));
+        if (members[0]['uid'] == user.uid) {
+          await deleteChat(getId(chat), members[1]['name'], members[0]['name']);
+        } else {
+          await deleteChat(getId(chat), members[0]['name'], members[1]['name']);
         }
-      });
-
-  // Future<void> searchUser(String name) async {
-  //   search =
-  //   await FirebaseFirestoreService.searchUser(name);
-  //   notifyListeners();
-  // }
-
+      }
+    }
+    await userCollection.doc(uid).delete();
+    if (Platform.isAndroid) {
+      exit(0);
+      //SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    } else if (Platform.isIOS) {
+      exit(0);
+    }
+  }
 }

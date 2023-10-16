@@ -6,6 +6,7 @@ final String uid;
 String displayName;
 String photoURL;
 List<dynamic>? chats;
+String fCMToken;
 
 UserModel({
   required this.uuid,
@@ -13,5 +14,6 @@ UserModel({
   required this.displayName,
   required this.photoURL,
   required this.chats,
+  required this.fCMToken,
 });
 }

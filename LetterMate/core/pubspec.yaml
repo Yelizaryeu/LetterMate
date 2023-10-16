@@ -38,6 +38,7 @@ dev_dependencies:
   firebase_storage: ^11.2.6
   firebase_database: ^10.2.5
   get_it: ^7.6.0
+  flutter_keyboard_visibility: ^5.4.1
 
 flutter:
 

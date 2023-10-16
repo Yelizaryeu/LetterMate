@@ -9,6 +9,7 @@ abstract class UserMapper {
       displayName: model.displayName,
       photoURL: model.photoURL,
       chats: model.chats,
+      fCMToken: model.fCMToken,
 
     );
   }
@@ -20,6 +21,7 @@ abstract class UserMapper {
       displayName: entity.displayName,
       photoURL: entity.photoURL,
       chats: entity.chats,
+      fCMToken: entity.fCMToken,
     );
   }
 }
