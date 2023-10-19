@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-
-
-class BottomNavBarApp extends StatelessWidget {
-  const BottomNavBarApp({super.key});
+class AppBottomNavBarWidget extends StatelessWidget {
+  const AppBottomNavBarWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,20 +15,16 @@ class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
 
   @override
-  State<BottomNavBar> createState() =>
-      _BottomNavBarState();
+  State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
-class _BottomNavBarState
-    extends State<BottomNavBar> {
+class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static List<Widget> _widgetOptions = <Widget>[
     //ChatsPage(),
     //ProfilePage(),
   ];
-
 
   void _onItemTapped(int index) {
     setState(() {

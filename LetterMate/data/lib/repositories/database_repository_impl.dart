@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:core/di/app_di.dart';
 import 'package:data/entity/chat/chat_entity.dart';
+import 'package:data/mappers/user_mapper.dart';
 import 'package:domain/models/user/user_model.dart';
 import 'package:domain/repositories/database_repository.dart';
 
@@ -21,8 +22,8 @@ class DatabaseRepositoryImpl implements DatabaseRepository {
   }
 
   @override
-  Future<UserEntity> getUserData() async {
-    return await databaseService.getUserData();
+  Future<UserModel> getUserData() async {
+    return UserMapper.toModel(await databaseService.getUserData());
   }
 
   // @override

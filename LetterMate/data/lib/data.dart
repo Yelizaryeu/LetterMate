@@ -1,3 +1,3 @@
 library data;
 
-export 'package:dio/dio.dart';
+export 'package:data/providers/database_service.dart';

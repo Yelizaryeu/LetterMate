@@ -4,23 +4,34 @@ class ProfileState extends Equatable {
   final String displayName;
   final String uuid;
   final String photoURL;
+  final bool isLoading;
+  final bool isEditMode;
+  final String pickedFile;
 
   const ProfileState({
-    required this.displayName,
-    required this.uuid,
-    required this.photoURL,
+    this.displayName = '',
+    this.uuid = '',
+    this.photoURL = '',
+    this.isLoading = true,
+    this.isEditMode = false,
+    this.pickedFile = '',
   });
 
   ProfileState copyWith({
     String? displayName,
     String? uuid,
     String? photoURL,
+    bool? isLoading,
+    bool? isEditMode,
+    String? pickedFile,
   }) {
     return ProfileState(
-      displayName: displayName ?? this.displayName,
-      uuid: uuid ?? this.uuid,
-      photoURL: photoURL ?? this.photoURL,
-    );
+        displayName: displayName ?? this.displayName,
+        uuid: uuid ?? this.uuid,
+        photoURL: photoURL ?? this.photoURL,
+        isLoading: isLoading ?? this.isLoading,
+        isEditMode: isEditMode ?? this.isEditMode,
+        pickedFile: pickedFile ?? this.pickedFile);
   }
 
   @override
@@ -28,5 +39,8 @@ class ProfileState extends Equatable {
         displayName,
         uuid,
         photoURL,
+        isLoading,
+        isEditMode,
+        pickedFile,
       ];
 }

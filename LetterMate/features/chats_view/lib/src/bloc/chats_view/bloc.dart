@@ -1,11 +1,7 @@
-import 'package:bloc/bloc.dart';
-import 'package:core/di/locator_service.dart';
-import 'package:domain/models/user/user_model.dart';
-import 'package:domain/repositories/database_repository.dart';
-import 'package:data/entity/user/user_entity.dart';
-import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:core/core.dart';
+import 'package:domain/repositories/database_repository.dart';
+import 'package:equatable/equatable.dart';
 
 part 'event.dart';
 part 'state.dart';

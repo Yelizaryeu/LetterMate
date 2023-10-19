@@ -12,7 +12,11 @@ class ProfileUpdateEvent extends ProfileEvent {
   const ProfileUpdateEvent(this.displayName, this.uuid);
 }
 
+class ProfileEditModeEvent extends ProfileEvent {}
+
 class ProfileDeleteEvent extends ProfileEvent {}
+
+class ProfileSelectAvatarEvent extends ProfileEvent {}
 
 class ProfileAvatarEvent extends ProfileEvent {
   final File avatar;

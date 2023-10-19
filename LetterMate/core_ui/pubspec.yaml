@@ -17,9 +17,6 @@ dependencies:
   navigation:
     path: ../navigation
 
-  cached_network_image: ^3.2.2
-  timeago: ^3.5.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

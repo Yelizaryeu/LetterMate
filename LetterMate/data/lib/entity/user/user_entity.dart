@@ -1,42 +1,18 @@
-import 'package:domain/models/user/user_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class UserEntity extends UserModel {
+part 'user_entity.freezed.dart';
+part 'user_entity.g.dart';
 
-  UserEntity(
-      {required super.uuid,
-        required super.uid,
-        required super.displayName,
-        required super.photoURL,
-        required super.chats,
-        required super.fCMToken,
-      });
+@freezed
+class UserEntity with _$UserEntity {
+  factory UserEntity({
+    required String uuid,
+    required String uid,
+    required String displayName,
+    required String photoURL,
+    List<dynamic>? chats,
+    required String fCMToken,
+  }) = _UserEntity;
 
-
-  factory  UserEntity.fromJson(Map<String, dynamic> json) {
-
-    return UserEntity(
-      uid: json['uid'],
-      uuid: json['uuid'],
-      displayName: json['displayName'] ?? 'Anon',
-      photoURL: json['photoURL'],
-      chats: json['chats'],
-      fCMToken: json['fCMToken'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'uid' : uid,
-      'uuid' : uuid,
-      'displayName': displayName,
-      'photoURL': photoURL,
-      'chats' : chats,
-      'fCMToken': fCMToken,
-    };
-  }
-
-  @override
-  String toString() {
-    return 'UUID: $uuid, Name: $displayName';
-  }
+  factory UserEntity.fromJson(Map<String, dynamic> json) => _$UserEntityFromJson(json);
 }

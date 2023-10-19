@@ -1,14 +1,14 @@
-import 'package:domain/models/chat_member/chat_member_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class ChatModel {
-  final String chatId;
-  final String chatIcon;
-  final List<dynamic> members;
-  String? recentMessage;
-  int? recentMessageTime;
-  String? recentMessageSender;
+part 'chat_model.freezed.dart';
 
-  ChatModel({
-    required this.chatId, required this.chatIcon, required this.members ,this.recentMessageSender, this.recentMessageTime, this.recentMessage,
-  });
+@freezed
+class ChatModel with _$ChatModel {
+  factory ChatModel({
+    required String chatId,
+    required List<dynamic> members,
+    required String recentMessage,
+    required int? recentMessageTime,
+    required String? recentMessageSender,
+  }) = _ChatModel;
 }

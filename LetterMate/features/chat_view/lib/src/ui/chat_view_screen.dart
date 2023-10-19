@@ -1,27 +1,22 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:core/di/app_di.dart';
 import 'package:core_ui/core_ui.dart';
-import 'package:flutter/material.dart';
-import 'package:data/providers/database_service.dart';
+import 'package:data/data.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:image_picker/image_picker.dart';
-
+import 'package:flutter/material.dart';
 
 class ChatViewScreen extends StatefulWidget {
   final String chatId;
   final String chatName;
   final String userName;
-  const ChatViewScreen(
-      {Key? key,
-        required this.chatId,
-        required this.chatName,
-        required this.userName,
-      })
-      : super(key: key);
+  const ChatViewScreen({
+    Key? key,
+    required this.chatId,
+    required this.chatName,
+    required this.userName,
+  }) : super(key: key);
 
   @override
   State<ChatViewScreen> createState() => _ChatPageState();
@@ -144,10 +139,10 @@ class _ChatPageState extends State<ChatViewScreen> {
                     // ),
                     child: const Center(
                         child: Icon(
-                          Icons.add_circle_rounded,
-                          color: Colors.black54,
-                          size: 40.0,
-                        )),
+                      Icons.add_circle_rounded,
+                      color: Colors.black54,
+                      size: 40.0,
+                    )),
                   ),
                 ),
                 const SizedBox(
@@ -177,81 +172,79 @@ class _ChatPageState extends State<ChatViewScreen> {
                   width: 6,
                 ),
                 Expanded(
-                    child: TextFormField(
-                      controller: messageController,
-                      style: const TextStyle(color: Colors.black),
-                      decoration: InputDecoration(
-                        contentPadding:
-                        EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black54),
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        filled: true,
-                        fillColor: Colors.black12,
-                        hintText: "Message",
-                        hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
-                        border: InputBorder.none,
+                  child: TextFormField(
+                    controller: messageController,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black54),
+                        borderRadius: BorderRadius.circular(15.0),
                       ),
-                      onChanged: (text) async {
-                        if (text != '' && editMode == false){
-                          isTyping = true;
-                        }
-                        if (isTyping == true && editMode == false) {
-                          var members = await databaseService.getChatMembers(widget.chatId);
-                          for (Map<String, dynamic> member in members) {
-                            if (member['name'] == widget.userName) {
-                              member['isTyping'] = "true";
-                            }
+                      filled: true,
+                      fillColor: Colors.black12,
+                      hintText: "Message",
+                      hintStyle: TextStyle(color: Colors.black26, fontSize: 16),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (text) async {
+                      if (text != '' && editMode == false) {
+                        isTyping = true;
+                      }
+                      if (isTyping == true && editMode == false) {
+                        var members = await databaseService.getChatMembers(widget.chatId);
+                        for (Map<String, dynamic> member in members) {
+                          if (member['name'] == widget.userName) {
+                            member['isTyping'] = "true";
                           }
-                          print('is typing');
-                          await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
                         }
-                        if (text == '' && editMode == false) {
-                          var members = await databaseService.getChatMembers(widget.chatId);
-                          for (Map<String, dynamic> member in members) {
-                            if (member['name'] == widget.userName) {
-                              member['isTyping'] = "false";
-                            }
-                          }
-                          await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
-                        }
-                      },
-                      onFieldSubmitted: (text) async {
+                        print('is typing');
+                        await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
+                      }
+                      if (text == '' && editMode == false) {
                         var members = await databaseService.getChatMembers(widget.chatId);
                         for (Map<String, dynamic> member in members) {
                           if (member['name'] == widget.userName) {
                             member['isTyping'] = "false";
                           }
                         }
-                        print('finished typing');
                         await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
-                        setState(() {
-                          isTyping = false;
-                        });
-                      },
-                      onEditingComplete: () async {
-                        var members = await databaseService.getChatMembers(widget.chatId);
-                        for (Map<String, dynamic> member in members) {
-                          if (member['name'] == widget.userName) {
-                            member['isTyping'] = "false";
-                          }
+                      }
+                    },
+                    onFieldSubmitted: (text) async {
+                      var members = await databaseService.getChatMembers(widget.chatId);
+                      for (Map<String, dynamic> member in members) {
+                        if (member['name'] == widget.userName) {
+                          member['isTyping'] = "false";
                         }
-                        print('edit complete');
-                        await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
-                        setState(() {
-                          isTyping = false;
-                        });
-                      },
-                    ),),
+                      }
+                      print('finished typing');
+                      await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
+                      setState(() {
+                        isTyping = false;
+                      });
+                    },
+                    onEditingComplete: () async {
+                      var members = await databaseService.getChatMembers(widget.chatId);
+                      for (Map<String, dynamic> member in members) {
+                        if (member['name'] == widget.userName) {
+                          member['isTyping'] = "false";
+                        }
+                      }
+                      print('edit complete');
+                      await databaseService.chatCollection.doc(widget.chatId).update({'members': members});
+                      setState(() {
+                        isTyping = false;
+                      });
+                    },
+                  ),
+                ),
                 const SizedBox(
                   width: 12,
                 ),
                 GestureDetector(
                   onTap: () {
-                    editMode
-                    ? updateMessage()
-                    : sendMessage();
+                    editMode ? updateMessage() : sendMessage();
                   },
                   child: Container(
                     height: 50,
@@ -261,16 +254,16 @@ class _ChatPageState extends State<ChatViewScreen> {
                     //   borderRadius: BorderRadius.circular(30),
                     // ),
                     child: Center(
-                        child: editMode
-                            ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                        )
-                            : const Icon(
-                          Icons.send_rounded,
-                          color: Colors.black54,
-                          size: 40.0,
-                        ),
+                      child: editMode
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.black54,
+                              size: 40.0,
+                            ),
                     ),
                   ),
                 )
@@ -296,11 +289,15 @@ class _ChatPageState extends State<ChatViewScreen> {
                 if (snapshot.data['members'][0]['isTyping'] == 'true' &&
                     snapshot.data['members'][0]['name'] != widget.userName) {
                   print('member 0 is companion and he is typing');
-                  return SimpleTypingIndicatorWidget(user: snapshot.data['members'][0]['name'],);
+                  return SimpleTypingIndicatorWidget(
+                    user: snapshot.data['members'][0]['name'],
+                  );
                 } else if (snapshot.data['members'][1]['isTyping'] == 'true' &&
                     snapshot.data['members'][1]['name'] != widget.userName) {
                   print('member 1 is companion and he is typing');
-                  return SimpleTypingIndicatorWidget(user: snapshot.data['members'][1]['name'],);
+                  return SimpleTypingIndicatorWidget(
+                    user: snapshot.data['members'][1]['name'],
+                  );
                 } else {
                   print('no one is typing');
                   return Container();
@@ -316,10 +313,7 @@ class _ChatPageState extends State<ChatViewScreen> {
           } else {
             print('snapshot with members have no data');
             return Center(
-              child: CircularProgressIndicator(
-                  color: Theme
-                      .of(context)
-                      .primaryColor),
+              child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
             );
           }
         },
@@ -335,34 +329,37 @@ class _ChatPageState extends State<ChatViewScreen> {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
             if (scrollController.hasClients) {
               scrollController.animateTo(scrollController.position.maxScrollExtent,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut);
+                  duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
             }
           });
         }
         return snapshot.hasData
             ? ListView.builder(
-          controller: scrollController,
-          padding: EdgeInsets.only(top: 5.0, bottom: 105.0),
-          itemCount: snapshot.data.docs.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTapDown: (position) => {_getTapPosition(position)},
-              onLongPress: () => {_showMessageMenu(context, snapshot.data.docs[index]['message'], snapshot.data.docs[index]['time'].toString(),)},
-
-              child: MessageTile(
-                message: snapshot.data.docs[index]['message'],
-                sender: snapshot.data.docs[index]['sender'],
-                time: snapshot.data.docs[index]['time'],
-                sentByMe: widget.userName ==
-                    snapshot.data.docs[index]['sender'],
-                messageType: snapshot.data.docs[index]['messageType'],
-                isEdited: snapshot.data.docs[index]['isEdited'],
-                isDeleted: snapshot.data.docs[index]['isDeleted'],
-              ),
-            );
-          },
-        )
+                controller: scrollController,
+                padding: EdgeInsets.only(top: 5.0, bottom: 105.0),
+                itemCount: snapshot.data.docs.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTapDown: (position) => {_getTapPosition(position)},
+                    onLongPress: () => {
+                      _showMessageMenu(
+                        context,
+                        snapshot.data.docs[index]['message'],
+                        snapshot.data.docs[index]['time'].toString(),
+                      )
+                    },
+                    child: MessageTile(
+                      message: snapshot.data.docs[index]['message'],
+                      sender: snapshot.data.docs[index]['sender'],
+                      time: snapshot.data.docs[index]['time'],
+                      sentByMe: widget.userName == snapshot.data.docs[index]['sender'],
+                      messageType: snapshot.data.docs[index]['messageType'],
+                      isEdited: snapshot.data.docs[index]['isEdited'],
+                      isDeleted: snapshot.data.docs[index]['isDeleted'],
+                    ),
+                  );
+                },
+              )
             : Container();
       },
     );
@@ -395,11 +392,11 @@ class _ChatPageState extends State<ChatViewScreen> {
         "isDeleted": false,
       };
 
-      databaseService.sendUserFile(widget.chatId, File(pickedImage!.path!), '${widget.chatId}/files/${DateTime.now().millisecondsSinceEpoch}', chatMessageMap);
+      databaseService.sendUserFile(widget.chatId, File(pickedImage!.path!),
+          '${widget.chatId}/files/${DateTime.now().millisecondsSinceEpoch}', chatMessageMap);
       setState(() {
         pickedImage = null;
       });
-
     }
 
     if (pickedFile != null) {
@@ -412,13 +409,12 @@ class _ChatPageState extends State<ChatViewScreen> {
         "isDeleted": false,
       };
 
-      databaseService.sendUserFile(widget.chatId, File(pickedFile!.path!), '${widget.chatId}/files/${DateTime.now().millisecondsSinceEpoch}', chatMessageMap);
+      databaseService.sendUserFile(widget.chatId, File(pickedFile!.path!),
+          '${widget.chatId}/files/${DateTime.now().millisecondsSinceEpoch}', chatMessageMap);
       setState(() {
         pickedFile = null;
       });
-
     }
-
   }
 
   editMessage(String originalMessage) {
@@ -479,32 +475,27 @@ class _ChatPageState extends State<ChatViewScreen> {
     await databaseService.deleteChat(chatId, chatName, userName);
   }
 
-  void scrollDown() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+  void scrollDown() => WidgetsBinding.instance.addPostFrameCallback((_) {
         if (scrollController.hasClients) {
-          scrollController.jumpTo(
-              scrollController.position.maxScrollExtent);
+          scrollController.jumpTo(scrollController.position.maxScrollExtent);
         }
       });
 
-  void _getTapPosition(TapDownDetails tapPosition){
+  void _getTapPosition(TapDownDetails tapPosition) {
     final RenderBox referenceBox = context.findRenderObject() as RenderBox;
     setState(() {
-      _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition);   // store the tap positon in offset variable
+      _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition); // store the tap positon in offset variable
       print(_tapPosition);
     });
   }
 
   void _showMessageMenu(BuildContext context, String message, String mesId) async {
-    final RenderObject? overlay =
-    Overlay.of(context)?.context.findRenderObject();
+    final RenderObject? overlay = Overlay.of(context)?.context.findRenderObject();
 
     final result = await showMenu(
         context: context,
-        position: RelativeRect.fromRect(
-            Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
-            Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width,
-                overlay!.paintBounds.size.height)),
+        position: RelativeRect.fromRect(Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
+            Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width, overlay!.paintBounds.size.height)),
         items: [
           const PopupMenuItem(
             child: Text('Edit'),
@@ -541,15 +532,12 @@ class _ChatPageState extends State<ChatViewScreen> {
   }
 
   void _showDeleteChatMenu(BuildContext context, String chatId, String chatName, String userName) async {
-    final RenderObject? overlay =
-    Overlay.of(context)?.context.findRenderObject();
+    final RenderObject? overlay = Overlay.of(context)?.context.findRenderObject();
 
     final result = await showMenu(
         context: context,
-        position: RelativeRect.fromRect(
-            Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
-            Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width,
-                overlay!.paintBounds.size.height)),
+        position: RelativeRect.fromRect(Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
+            Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width, overlay!.paintBounds.size.height)),
         items: [
           const PopupMenuItem(
             child: Text('Delete chat'),
@@ -564,5 +552,4 @@ class _ChatPageState extends State<ChatViewScreen> {
         break;
     }
   }
-
 }
