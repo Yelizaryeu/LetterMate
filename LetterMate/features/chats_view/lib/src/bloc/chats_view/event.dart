@@ -1,15 +1,20 @@
 part of 'bloc.dart';
 
-abstract class ChatsEvent extends Equatable {
+abstract class ChatsEvent {
   const ChatsEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
-class ChatsFetchedEvent extends ChatsEvent {
-  //final List<String> chats;
-  const ChatsFetchedEvent();
-  @override
-  List<Object?> get props => [];
+class NewChatsEvent extends ChatsEvent {
+  final UserModel userModel;
+
+  NewChatsEvent(this.userModel);
 }
+
+class ChatsCreateEvent extends ChatsEvent {
+  final String companionId;
+  const ChatsCreateEvent(this.companionId);
+}
+
+class ChatsErrorEvent extends ChatsEvent {}
+
+class ChatsDeleteEvent extends ChatsEvent {}

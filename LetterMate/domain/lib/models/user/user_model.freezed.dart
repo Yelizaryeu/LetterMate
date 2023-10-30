@@ -20,7 +20,7 @@ mixin _$UserModel {
   String get uid => throw _privateConstructorUsedError;
   String get displayName => throw _privateConstructorUsedError;
   String get photoURL => throw _privateConstructorUsedError;
-  List<dynamic>? get chats => throw _privateConstructorUsedError;
+  List<String>? get chats => throw _privateConstructorUsedError;
   String get fCMToken => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -38,7 +38,7 @@ abstract class $UserModelCopyWith<$Res> {
       String uid,
       String displayName,
       String photoURL,
-      List<dynamic>? chats,
+      List<String>? chats,
       String fCMToken});
 }
 
@@ -82,7 +82,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
       chats: freezed == chats
           ? _value.chats
           : chats // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>?,
+              as List<String>?,
       fCMToken: null == fCMToken
           ? _value.fCMToken
           : fCMToken // ignore: cast_nullable_to_non_nullable
@@ -104,7 +104,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String uid,
       String displayName,
       String photoURL,
-      List<dynamic>? chats,
+      List<String>? chats,
       String fCMToken});
 }
 
@@ -146,7 +146,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
       chats: freezed == chats
           ? _value._chats
           : chats // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>?,
+              as List<String>?,
       fCMToken: null == fCMToken
           ? _value.fCMToken
           : fCMToken // ignore: cast_nullable_to_non_nullable
@@ -163,7 +163,7 @@ class _$UserModelImpl implements _UserModel {
       required this.uid,
       required this.displayName,
       required this.photoURL,
-      final List<dynamic>? chats,
+      final List<String>? chats,
       required this.fCMToken})
       : _chats = chats;
 
@@ -175,9 +175,9 @@ class _$UserModelImpl implements _UserModel {
   final String displayName;
   @override
   final String photoURL;
-  final List<dynamic>? _chats;
+  final List<String>? _chats;
   @override
-  List<dynamic>? get chats {
+  List<String>? get chats {
     final value = _chats;
     if (value == null) return null;
     if (_chats is EqualUnmodifiableListView) return _chats;
@@ -226,7 +226,7 @@ abstract class _UserModel implements UserModel {
       required final String uid,
       required final String displayName,
       required final String photoURL,
-      final List<dynamic>? chats,
+      final List<String>? chats,
       required final String fCMToken}) = _$UserModelImpl;
 
   @override
@@ -238,7 +238,7 @@ abstract class _UserModel implements UserModel {
   @override
   String get photoURL;
   @override
-  List<dynamic>? get chats;
+  List<String>? get chats;
   @override
   String get fCMToken;
   @override

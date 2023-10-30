@@ -11,6 +11,6 @@ class DeleteUserUseCase extends FutureUseCase<NoParams, void> {
 
   @override
   Future<void> execute(NoParams input) async {
-    return await _databaseRepository.deleteUserAccount();
+    return _databaseRepository.deleteUserAccount();
   }
 }

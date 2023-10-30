@@ -1,20 +1,17 @@
-class MessageModel {
-  final String senderId;
-  final String receiverId;
-  final String content;
-  final DateTime sentTime;
-  final MessageType messageType;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const MessageModel({
-    required this.senderId,
-    required this.receiverId,
-    required this.sentTime,
-    required this.content,
-    required this.messageType,
-  });
-}
+part 'message_model.freezed.dart';
 
-enum MessageType {
-  text,
-  image;
+@freezed
+class MessageModel with _$MessageModel {
+  factory MessageModel({
+    required String senderId,
+    required String senderName,
+    required String message,
+    required String chatId,
+    required int time,
+    required String messageType,
+    required bool isEdited,
+    required bool isDeleted,
+  }) = _MessageModel;
 }

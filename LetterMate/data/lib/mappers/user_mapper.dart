@@ -1,5 +1,6 @@
 import 'package:domain/models/user/user_model.dart';
-import '../entity/user/user_entity.dart';
+
+import '../entities/user/user_entity.dart';
 
 abstract class UserMapper {
   static UserEntity toEntity(UserModel model) {
@@ -10,7 +11,6 @@ abstract class UserMapper {
       photoURL: model.photoURL,
       chats: model.chats,
       fCMToken: model.fCMToken,
-
     );
   }
 

@@ -8,6 +8,7 @@ class ChatMemberModel with _$ChatMemberModel {
     required String uuid,
     required String uid,
     required String name,
+    required String chatId,
     required String photoURL,
     required String fCMToken,
     required String isTyping,

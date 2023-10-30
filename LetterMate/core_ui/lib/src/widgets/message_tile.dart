@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class MessageTile extends StatefulWidget {
   final String message;
-  final String sender;
+  final String senderName;
   final int time;
   final bool sentByMe;
   final String messageType;
@@ -10,59 +10,50 @@ class MessageTile extends StatefulWidget {
   final bool isDeleted;
   final String? fileName;
 
-  const MessageTile(
-      {Key? key,
-        required this.message,
-        required this.sender,
-        required this.time,
-        required this.sentByMe,
-        required this.messageType,
-        required this.isEdited,
-        required this.isDeleted,
-        this.fileName,
-      })
-      : super(key: key);
+  const MessageTile({
+    Key? key,
+    required this.message,
+    required this.senderName,
+    required this.time,
+    required this.sentByMe,
+    required this.messageType,
+    required this.isEdited,
+    required this.isDeleted,
+    this.fileName,
+  }) : super(key: key);
 
   @override
   State<MessageTile> createState() => _MessageTileState();
 }
 
 class _MessageTileState extends State<MessageTile> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(
-          top: 4,
-          bottom: 4,
-          left: widget.sentByMe ? 0 : 24,
-          right: widget.sentByMe ? 24 : 0),
+      padding: EdgeInsets.only(top: 4, bottom: 4, left: widget.sentByMe ? 0 : 24, right: widget.sentByMe ? 24 : 0),
       alignment: widget.sentByMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: widget.sentByMe
-            ? const EdgeInsets.only(left: 30)
-            : const EdgeInsets.only(right: 30),
-        padding:
-        const EdgeInsets.only(top: 17, bottom: 17, left: 20, right: 20),
+        margin: widget.sentByMe ? const EdgeInsets.only(left: 30) : const EdgeInsets.only(right: 30),
+        padding: const EdgeInsets.only(top: 17, bottom: 17, left: 20, right: 20),
         decoration: BoxDecoration(
             borderRadius: widget.sentByMe
                 ? const BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
-              bottomLeft: Radius.circular(10),
-            )
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                    bottomLeft: Radius.circular(10),
+                  )
                 : const BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
-              bottomRight: Radius.circular(10),
-            ),
-            color: widget.sentByMe
-                ? Colors.grey.shade400
-                : Colors.grey.shade400),
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                    bottomRight: Radius.circular(10),
+                  ),
+            color: widget.sentByMe ? Colors.grey.shade400 : Colors.grey.shade400),
         child: widget.isDeleted
-            ? const Text('deleted',
-          textAlign: TextAlign.start,
-          style: TextStyle(fontSize: 16, color: Colors.black54, fontStyle: FontStyle.italic),)
+            ? const Text(
+                'deleted',
+                textAlign: TextAlign.start,
+                style: TextStyle(fontSize: 16, color: Colors.black54, fontStyle: FontStyle.italic),
+              )
             : getMessage(widget.messageType),
       ),
     );
@@ -86,8 +77,7 @@ class _MessageTileState extends State<MessageTile> {
         width: 200,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image:
-            NetworkImage(widget.message),
+            image: NetworkImage(widget.message),
             fit: BoxFit.cover,
           ),
         ),
@@ -100,9 +90,9 @@ class _MessageTileState extends State<MessageTile> {
           widget.fileName!,
           textAlign: TextAlign.start,
           style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
       );
@@ -116,13 +106,10 @@ class _MessageTileState extends State<MessageTile> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                widget.sender,
+                widget.senderName,
                 textAlign: TextAlign.start,
                 style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    letterSpacing: -0.5),
+                    fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black, letterSpacing: -0.5),
               ),
               const SizedBox(
                 width: 10.0,
@@ -131,21 +118,19 @@ class _MessageTileState extends State<MessageTile> {
                 (widget.isEdited ? "Edited " : "") + messageDate(widget.time),
                 textAlign: TextAlign.start,
                 style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black,
-                    letterSpacing: -0.5),
+                    fontSize: 13, fontWeight: FontWeight.normal, color: Colors.black, letterSpacing: -0.5),
               ),
             ],
           ),
-          Text(widget.message,
+          Text(
+            widget.message,
             textAlign: TextAlign.start,
-            style: const TextStyle(fontSize: 16, color: Colors.black54),),
-        ],);
-
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+        ],
+      );
     } else {
       return Container();
     }
   }
-
 }

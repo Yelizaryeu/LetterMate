@@ -5,7 +5,8 @@ class AppFonts {
     fontSize: 12,
     fontWeight: FontWeight.w400,
   );
-  static TextStyle normal20 = const TextStyle(
+  static TextStyle normal20black = const TextStyle(
+    color: Colors.black,
     fontWeight: FontWeight.w400,
     fontSize: 20,
   );

@@ -14,15 +14,8 @@ class DataDI {
   }
 
   Future _initApi() async {
-    // appLocator.registerLazySingleton<ErrorHandler>(
-    //   ErrorHandler.new,
-    // );
-    // final currentUser = await AuthService().signInAnon();
-    // print('signed current user');
-    // appLocator.registerSingleton<UserEntity>(currentUser, instanceName: 'currentUser',);
-
     appLocator.registerLazySingleton<DatabaseService>(
-      () => DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid),
+      () => DatabaseService(uid: FirebaseAuth.instance.currentUser?.uid ?? ''),
     );
 
     await appLocator<DatabaseService>().initNotifications();
@@ -53,8 +46,74 @@ class DataDI {
       ),
     );
 
+    appLocator.registerLazySingleton<GettingChatMessagesUseCase>(
+      () => GettingChatMessagesUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<GettingChatMembersUseCase>(
+      () => GettingChatMembersUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<GettingUserDataUseCase>(
+      () => GettingUserDataUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
     appLocator.registerLazySingleton<GetUserDataUseCase>(
       () => GetUserDataUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<CreateChatUseCase>(
+      () => CreateChatUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<SendMessageUseCase>(
+      () => SendMessageUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<CheckUserExistenceUseCase>(
+      () => CheckUserExistenceUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<DeleteMessageUseCase>(
+      () => DeleteMessageUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<EditMessageUseCase>(
+      () => EditMessageUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<DeleteChatUseCase>(
+      () => DeleteChatUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<TypingMessageUseCase>(
+      () => TypingMessageUseCase(
+        databaseRepository: appLocator.get<DatabaseRepository>(),
+      ),
+    );
+
+    appLocator.registerLazySingleton<SendFileUseCase>(
+      () => SendFileUseCase(
         databaseRepository: appLocator.get<DatabaseRepository>(),
       ),
     );

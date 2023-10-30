@@ -19,6 +19,7 @@ mixin _$ChatMemberModel {
   String get uuid => throw _privateConstructorUsedError;
   String get uid => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  String get chatId => throw _privateConstructorUsedError;
   String get photoURL => throw _privateConstructorUsedError;
   String get fCMToken => throw _privateConstructorUsedError;
   String get isTyping => throw _privateConstructorUsedError;
@@ -38,6 +39,7 @@ abstract class $ChatMemberModelCopyWith<$Res> {
       {String uuid,
       String uid,
       String name,
+      String chatId,
       String photoURL,
       String fCMToken,
       String isTyping});
@@ -59,6 +61,7 @@ class _$ChatMemberModelCopyWithImpl<$Res, $Val extends ChatMemberModel>
     Object? uuid = null,
     Object? uid = null,
     Object? name = null,
+    Object? chatId = null,
     Object? photoURL = null,
     Object? fCMToken = null,
     Object? isTyping = null,
@@ -75,6 +78,10 @@ class _$ChatMemberModelCopyWithImpl<$Res, $Val extends ChatMemberModel>
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      chatId: null == chatId
+          ? _value.chatId
+          : chatId // ignore: cast_nullable_to_non_nullable
               as String,
       photoURL: null == photoURL
           ? _value.photoURL
@@ -104,6 +111,7 @@ abstract class _$$ChatMemberModelImplCopyWith<$Res>
       {String uuid,
       String uid,
       String name,
+      String chatId,
       String photoURL,
       String fCMToken,
       String isTyping});
@@ -123,6 +131,7 @@ class __$$ChatMemberModelImplCopyWithImpl<$Res>
     Object? uuid = null,
     Object? uid = null,
     Object? name = null,
+    Object? chatId = null,
     Object? photoURL = null,
     Object? fCMToken = null,
     Object? isTyping = null,
@@ -139,6 +148,10 @@ class __$$ChatMemberModelImplCopyWithImpl<$Res>
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      chatId: null == chatId
+          ? _value.chatId
+          : chatId // ignore: cast_nullable_to_non_nullable
               as String,
       photoURL: null == photoURL
           ? _value.photoURL
@@ -163,6 +176,7 @@ class _$ChatMemberModelImpl implements _ChatMemberModel {
       {required this.uuid,
       required this.uid,
       required this.name,
+      required this.chatId,
       required this.photoURL,
       required this.fCMToken,
       required this.isTyping});
@@ -174,6 +188,8 @@ class _$ChatMemberModelImpl implements _ChatMemberModel {
   @override
   final String name;
   @override
+  final String chatId;
+  @override
   final String photoURL;
   @override
   final String fCMToken;
@@ -182,7 +198,7 @@ class _$ChatMemberModelImpl implements _ChatMemberModel {
 
   @override
   String toString() {
-    return 'ChatMemberModel(uuid: $uuid, uid: $uid, name: $name, photoURL: $photoURL, fCMToken: $fCMToken, isTyping: $isTyping)';
+    return 'ChatMemberModel(uuid: $uuid, uid: $uid, name: $name, chatId: $chatId, photoURL: $photoURL, fCMToken: $fCMToken, isTyping: $isTyping)';
   }
 
   @override
@@ -193,6 +209,7 @@ class _$ChatMemberModelImpl implements _ChatMemberModel {
             (identical(other.uuid, uuid) || other.uuid == uuid) &&
             (identical(other.uid, uid) || other.uid == uid) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.chatId, chatId) || other.chatId == chatId) &&
             (identical(other.photoURL, photoURL) ||
                 other.photoURL == photoURL) &&
             (identical(other.fCMToken, fCMToken) ||
@@ -202,8 +219,8 @@ class _$ChatMemberModelImpl implements _ChatMemberModel {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, uuid, uid, name, photoURL, fCMToken, isTyping);
+  int get hashCode => Object.hash(
+      runtimeType, uuid, uid, name, chatId, photoURL, fCMToken, isTyping);
 
   @JsonKey(ignore: true)
   @override
@@ -218,6 +235,7 @@ abstract class _ChatMemberModel implements ChatMemberModel {
       {required final String uuid,
       required final String uid,
       required final String name,
+      required final String chatId,
       required final String photoURL,
       required final String fCMToken,
       required final String isTyping}) = _$ChatMemberModelImpl;
@@ -228,6 +246,8 @@ abstract class _ChatMemberModel implements ChatMemberModel {
   String get uid;
   @override
   String get name;
+  @override
+  String get chatId;
   @override
   String get photoURL;
   @override

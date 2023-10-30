@@ -1,9 +1,8 @@
 import 'package:core/di/app_di.dart';
-import 'package:domain/domain.dart';
+import 'package:core_ui/core_ui.dart';
+import 'package:data/data.dart';
 import 'package:flutter/material.dart';
 import 'package:navigation/navigation.dart';
-import 'package:data/providers/database_service.dart';
-import 'package:data/entity/chat/chat_entity.dart';
 
 class ChatTile extends StatefulWidget {
   String userName;
@@ -13,16 +12,15 @@ class ChatTile extends StatefulWidget {
   int? recentMessageTime;
   String? recentMessageSender;
 
-  ChatTile(
-      {Key? key,
-        this.recentMessageSender,
-        this.recentMessage,
-        this.recentMessageTime,
-        required this.chatId,
-        required this.chatName,
-        required this.userName,
-      })
-      : super(key: key);
+  ChatTile({
+    Key? key,
+    this.recentMessageSender,
+    this.recentMessage,
+    this.recentMessageTime,
+    required this.chatId,
+    required this.chatName,
+    required this.userName,
+  }) : super(key: key);
 
   @override
   State<ChatTile> createState() => _ChatTileState();
@@ -39,7 +37,6 @@ class _ChatTileState extends State<ChatTile> {
   void initState() {
     getRecentMessage(widget.chatId);
     getChatName(widget.chatId);
-
   }
 
   @override
@@ -61,20 +58,23 @@ class _ChatTileState extends State<ChatTile> {
             child: Text(
               widget.chatName.substring(0, 1).toUpperCase(),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w500),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
             ),
           ),
-          tileColor: Colors.grey.shade400,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(5.0),),),
+          tileColor: AppColors.grey,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(AppDimens.BORDER_RADIUS_5),
+            ),
+          ),
           title: Text(
             widget.chatName,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: formatResentMessage(widget.recentMessage, widget.recentMessageTime, widget.recentMessageSender),),
+          subtitle: formatResentMessage(widget.recentMessage, widget.recentMessageTime, widget.recentMessageSender),
         ),
-      );
+      ),
+    );
   }
 
   getRecentMessage(String chatId) async {
@@ -89,14 +89,14 @@ class _ChatTileState extends State<ChatTile> {
   }
 
   getChatName(String chatId) async {
-    List<dynamic> members = await databaseService.getChatMembers(chatId);
-    if (members[0]['name'] == widget.userName) {
+    List<ChatMemberEntity> members = await databaseService.getChatMembers(chatId);
+    if (members[0].name == widget.userName) {
       setState(() {
-        widget.chatName = members[1]['name'];
+        widget.chatName = members[1].name;
       });
     } else {
       setState(() {
-        widget.chatName = members[0]['name'];
+        widget.chatName = members[0].name;
       });
     }
   }
@@ -106,15 +106,11 @@ class _ChatTileState extends State<ChatTile> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          messageSender == widget.userName
-          ? message ?? "Joined as ${widget.userName}"
-          : '$messageSender: $message',
+          messageSender == widget.userName ? message ?? "Joined as ${widget.userName}" : '$messageSender: $message',
           style: const TextStyle(fontSize: 13),
         ),
         Text(
-          time != null
-              ? messageDate(time)
-              : '',
+          time != null ? messageDate(time) : '',
           style: const TextStyle(fontSize: 13),
         ),
       ],
@@ -131,5 +127,4 @@ class _ChatTileState extends State<ChatTile> {
       return "${messageSendTime.day}/${messageSendTime.month}/${messageSendTime.year}";
     }
   }
-
 }

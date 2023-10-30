@@ -19,7 +19,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.elementColor,
+        color: AppColors.grey,
         borderRadius: BorderRadius.circular(4),
       ),
       height: 40,

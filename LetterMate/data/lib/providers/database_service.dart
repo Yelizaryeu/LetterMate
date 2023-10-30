@@ -1,14 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data/entity/chat/chat_entity.dart';
-import 'package:data/entity/chat_member/chat_member_entity.dart';
+import 'package:data/entities/entities.dart';
+import 'package:data/mappers/mappers.dart';
+import 'package:domain/domain.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
-
-import '../entity/user/user_entity.dart';
 
 class DatabaseService {
   final String uid;
@@ -74,57 +74,45 @@ class DatabaseService {
 
   // update user data with given userEntity and update it's entities in chats
   Future<void> updateUserData(UserEntity userEntity) async {
-    print('updating user in database service');
     await userCollection.doc(userEntity.uid).set(userEntity.toJson());
     if (userEntity.chats != [] && userEntity.chats != null) {
       for (String chat in userEntity!.chats!) {
-        ChatEntity? chatEntity = await getChat(getId(chat));
-        // if (chatEntity!.recentMessageSender == userEntity.displayName) {
-        //   await chatCollection.doc(getId(chat)).update({'recentMessageSender': userEntity.displayName});
-        // }
-        await updateChatMember(
-            getId(chat),
-            ChatMemberEntity(
-                uid: userEntity.uid,
-                uuid: userEntity.uuid,
-                name: userEntity.displayName,
-                photoURL: userEntity.photoURL,
-                fCMToken: userEntity.fCMToken,
-                isTyping: 'false'));
+        await updateChatMember(ChatMemberEntity(
+            uid: userEntity.uid,
+            uuid: userEntity.uuid,
+            name: userEntity.displayName,
+            chatId: getId(chat),
+            photoURL: userEntity.photoURL,
+            fCMToken: userEntity.fCMToken,
+            isTyping: 'false'));
         await updateChatMessagesSender(getId(chat), uid, userEntity.displayName);
       }
     }
   }
 
   Future<void> updateUserName(String name) async {
-    print('updating name to this: $name');
     await userCollection.doc(uid).update({'displayName': name});
     final user = await getUserData();
     await updateUserData(user);
   }
 
   Future<void> updateUserUUID(String uuid) async {
-    print('updating uuid to this: $uuid');
     await userCollection.doc(uid).update({'uuid': uuid});
     final user = await getUserData();
     await updateUserData(user);
   }
 
   // update chat in chatCollection with given chatEntity
-  Future<void> updateChatData(ChatEntity chatEntity) async {
-    return await chatCollection.doc(chatEntity.chatId).set(chatEntity.toJson());
+  Future<void> updateChatData(ChatModel chatModel) async {
+    return await chatCollection.doc(chatModel.chatId).set(ChatMapper.toEntity(chatModel).toJson());
   }
 
   // update user photoURL, upload photo to firebase storage and set downloadURL to photoURL field
   Future<void> updateUserPhoto(File file) async {
     final path = '$uid/files/avatar/';
-    print('updating photo in database service');
     await FirebaseStorage.instance.ref().child(path).putFile(file);
-    print('put photo in storage');
     await userCollection.doc(uid).update({'photoURL': await FirebaseStorage.instance.ref(path).getDownloadURL()});
-    print('updated user photoURL');
     final user = await getUserData();
-    print('updated photo and now update userdata');
     return await updateUserData(user);
   }
 
@@ -136,7 +124,6 @@ class DatabaseService {
     print('getting user data');
     if (doc.data() == null) {
       String photoURL = await FirebaseStorage.instance.ref('default_profile.jpg').getDownloadURL();
-      print(photoURL);
       user = UserEntity(
         uuid: uid,
         uid: uid,
@@ -155,18 +142,17 @@ class DatabaseService {
     return user;
   }
 
-  // getting a stream of userCollection
-  gettingUserData() async {
-    return userCollection.doc(uid).snapshots();
-  }
+  Stream? _userData;
+  final StreamController<UserModel> _userDataModels = StreamController.broadcast();
 
-  //get userEntity by given uuid
-  // Future<UserEntity> getUserById(String uuid) async {
-  //   final doc = await userCollection.where("uuid", isEqualTo: uuid).get();
-  //   final userData = doc.docs.first.data() as Map<String, dynamic>;
-  //   final user = UserEntity.fromJson(userData);
-  //   return user;
-  // }
+  // getting a stream of userCollection
+  Stream<UserModel> gettingUserData() {
+    _userData ??= userCollection.doc(uid).snapshots();
+    _userData?.listen((event) {
+      _userDataModels.add(UserMapper.toModel(UserEntity.fromJson(event.data())));
+    });
+    return _userDataModels.stream;
+  }
 
   Future<UserEntity> getUserByUuid(String uuid) async {
     final Query<Object?> query = userCollection.where(
@@ -179,36 +165,61 @@ class DatabaseService {
   }
 
   // creating a chat
-  Future createChat(String userName, String companionId) async {
+  Future createChat(String companionId) async {
     final companion = await getUserByUuid(companionId);
     final currentUser = await getUserData();
-    final currentUserMember = ChatMemberEntity(
-        uid: currentUser.uid,
-        uuid: currentUser.uuid,
-        name: currentUser.displayName,
-        photoURL: currentUser.photoURL,
-        fCMToken: currentUser.fCMToken,
-        isTyping: 'false');
-    final companionMember = ChatMemberEntity(
-        uid: companion.uid,
-        uuid: companion.uuid,
-        name: companion.displayName,
-        photoURL: companion.photoURL,
-        fCMToken: companion.fCMToken,
-        isTyping: 'false');
+
     DocumentReference chatDocumentReference = await chatCollection.add(ChatEntity(
       chatId: "",
-      members: [currentUserMember.toJson(), companionMember.toJson()],
+      members: [],
       recentMessage: "",
       recentMessageSender: "",
       recentMessageTime: null,
     ).toJson());
 
     // update the members
+    final ChatMemberEntity currentUserMember = ChatMemberEntity(
+        uid: currentUser.uid,
+        uuid: currentUser.uuid,
+        name: currentUser.displayName,
+        chatId: chatDocumentReference.id,
+        photoURL: currentUser.photoURL,
+        fCMToken: currentUser.fCMToken,
+        isTyping: 'false');
+    final ChatMemberEntity companionMember = ChatMemberEntity(
+        uid: companion.uid,
+        uuid: companion.uuid,
+        name: companion.displayName,
+        chatId: chatDocumentReference.id,
+        photoURL: companion.photoURL,
+        fCMToken: companion.fCMToken,
+        isTyping: 'false');
 
-    await chatDocumentReference.update({
-      //"members": FieldValue.arrayUnion([currentUser.uuid, companionId]),
-      "chatId": chatDocumentReference.id,
+    print(currentUserMember);
+    await chatDocumentReference.update(
+      {
+        "chatId": chatDocumentReference.id,
+      },
+    );
+
+    chatCollection.doc(chatDocumentReference.id).collection("messages").doc("initial message").set(MessageEntity(
+          senderId: "LetterMate",
+          senderName: "LetterMate",
+          message: "${currentUserMember.name} created conversation",
+          chatId: chatDocumentReference.id,
+          time: DateTime.now().millisecondsSinceEpoch,
+          messageType: 'text',
+          isEdited: false,
+          isDeleted: false,
+        ).toJson());
+    chatCollection.doc(chatDocumentReference.id).update({
+      "recentMessage": "${currentUserMember.name} created conversation",
+      "recentMessageSender": "LetterMate",
+      "recentMessageTime": DateTime.now().millisecondsSinceEpoch,
+    });
+
+    await chatCollection.doc(chatDocumentReference.id).update({
+      'members': [currentUserMember.toJson(), companionMember.toJson()]
     });
 
     DocumentReference userDocumentReference = userCollection.doc(uid);
@@ -232,9 +243,26 @@ class DatabaseService {
     }
   }
 
+  final Map<String, Stream> _messages = {};
+  final Map<String, StreamController<List<MessageModel>?>> _messagesModels = {};
+
   // getting messages in the chat
-  gettingChatMessages(String chatId) async {
-    return chatCollection.doc(chatId).collection("messages").orderBy("time").snapshots();
+  Stream<List<MessageModel>?>? gettingChatMessages(String chatId) {
+    _messages[chatId] = chatCollection.doc(chatId).collection("messages").orderBy("time").snapshots();
+
+    _messagesModels[chatId] = StreamController.broadcast();
+    _messages[chatId]?.listen((event) {
+      if (!(_messagesModels[chatId]?.isClosed ?? false)) {
+        List<MessageModel> listOfMessages = [];
+        for (var message in event.docs) {
+          listOfMessages.add(MessageMapper.toModel(MessageEntity.fromJson(message.data())));
+        }
+        _messagesModels[chatId]?.add(listOfMessages);
+        // _messagesModels[chatId]
+        //     ?.add(event?.docs?.forEach((e) => MessageMapper.toModel(MessageEntity.fromJson(e.data())))?.toList());
+      }
+    });
+    return _messagesModels[chatId]?.stream;
   }
 
   // get chat entity
@@ -249,85 +277,130 @@ class DatabaseService {
   }
 
   // update chatMemberEntity in the chat
-  updateChatMember(String chatId, ChatMemberEntity chatMemberEntity) async {
-    List<dynamic> members = await getChatMembers(chatId);
+  updateChatMember(ChatMemberEntity chatMemberEntity) async {
+    List<ChatMemberEntity> members = await getChatMembers(chatMemberEntity.chatId);
     for (int i = 0; i <= members.length - 1; i++) {
-      if (chatMemberEntity.uid == members[i]['uid']) {
-        members[i] = chatMemberEntity.toJson();
+      if (chatMemberEntity.uid == members[i].uid) {
+        members[i] = members[i].copyWith(
+          name: chatMemberEntity.name,
+          uuid: chatMemberEntity.uuid,
+          isTyping: chatMemberEntity.isTyping,
+          photoURL: chatMemberEntity.photoURL,
+        );
       }
     }
-    await chatCollection.doc(chatId).update({'members': members});
+    await chatCollection.doc(chatMemberEntity.chatId).update({
+      'members': [members[0].toJson(), members[1].toJson()]
+    });
   }
 
   // update sender in messages
   updateChatMessagesSender(String chatId, String uid, String sender) async {
     final doc = await chatCollection.doc(chatId).collection('messages').get();
     final messages = doc.docs;
-    for (var doc in messages) {
+    for (QueryDocumentSnapshot<Map<String, dynamic>> doc in messages) {
       Map<String, dynamic> message = doc.data();
       if (message['senderId'] == uid) {
         await chatCollection
             .doc(chatId)
             .collection("messages")
             .doc(message['time'].toString())
-            .update({'sender': sender});
+            .update({'senderName': sender});
       }
     }
   }
 
   // getting a stream of chat
-  gettingChatMembers(chatId) async {
-    return chatCollection.doc(chatId).snapshots();
+  final Map<String, Stream> _members = {};
+  final Map<String, StreamController<List<ChatMemberModel>?>> _membersModels = {};
+
+  Stream<List<ChatMemberModel>?>? gettingChatMembers(chatId) {
+    _members[chatId] = chatCollection.doc(chatId).snapshots();
+
+    _membersModels[chatId] = StreamController.broadcast();
+    _members[chatId]?.listen((event) {
+      if (!(_membersModels[chatId]?.isClosed ?? false)) {
+        List<ChatMemberModel> listOfMembers = [];
+
+        for (Map<String, dynamic> member in event.data()['members']) {
+          listOfMembers.add(ChatMemberMapper.toModel(ChatMemberEntity.fromJson(member)));
+        }
+        _membersModels[chatId]?.add(listOfMembers);
+
+        // _membersModels[chatId]
+        //     ?.add(event?.docs?.forEach((e) => ChatMemberMapper.toModel(ChatMemberEntity.fromJson(e.data())))?.toList());
+      }
+    });
+    return _membersModels[chatId]?.stream;
   }
 
   // get chat members
-  Future<List<dynamic>> getChatMembers(chatId) async {
-    var doc = await chatCollection.doc(chatId).get();
-    var chat = doc.data() as Map<String, dynamic>;
-    List<dynamic> members = chat['members'];
+  Future<List<ChatMemberEntity>> getChatMembers(chatId) async {
+    DocumentSnapshot doc = await chatCollection.doc(chatId).get();
+    Map<String, dynamic> chat = doc.data() as Map<String, dynamic>;
+    List<ChatMemberEntity> members = [];
+    for (Map<String, dynamic> member in chat['members']) {
+      members.add(ChatMemberEntity.fromJson(member));
+    }
     return members;
   }
 
   // send message
-  sendMessage(String chatId, Map<String, dynamic> chatMessageData) async {
-    chatMessageData['senderId'] = uid;
-    chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
-    chatCollection.doc(chatId).update({
-      "recentMessage": chatMessageData['message'],
-      "recentMessageSender": chatMessageData['sender'],
-      "recentMessageTime": chatMessageData['time'],
+  sendMessage(MessageModel message) async {
+    chatCollection.doc(message.chatId).collection("messages").doc(message.time.toString()).set(MessageMapper.toEntity(
+          message.copyWith(
+            senderId: uid,
+          ),
+        ).toJson());
+    chatCollection.doc(message.chatId).update({
+      "recentMessage": message.message,
+      "recentMessageSender": message.senderName,
+      "recentMessageTime": message.time,
     });
-    List<dynamic> members = await getChatMembers(chatId);
-    for (Map<String, dynamic> member in members) {
-      if (member['name'] != chatMessageData['sender']) {
-        sendPushMessage(
-            member['fCMToken'], chatMessageData['message'], "New message from ${chatMessageData['sender']}");
+    List<ChatMemberEntity> members = await getChatMembers(message.chatId);
+    for (ChatMemberEntity member in members) {
+      if (member.name != message.senderName) {
+        sendPushMessage(member.fCMToken, message.message, "New message from ${message.senderName}");
       }
     }
   }
 
   // send file
-  Future sendUserFile(String chatId, File file, String path, Map<String, dynamic> chatMessageData) async {
+  Future sendUserFile(MessageModel messageModel) async {
+    print('sending image');
+    final String path = '${messageModel.chatId}/files/${DateTime.now().millisecondsSinceEpoch}';
+    final File file = File(messageModel.message);
+    print('putting file to storage');
     await FirebaseStorage.instance.ref().child(path).putFile(file);
-    final message = await FirebaseStorage.instance.ref(path).getDownloadURL();
-    chatMessageData["message"] = message;
-    chatCollection.doc(chatId).collection("messages").doc(chatMessageData['time'].toString()).set(chatMessageData);
-    chatCollection.doc(chatId).update({
-      "recentMessage": chatMessageData['messageType'],
-      "recentMessageSender": chatMessageData['sender'],
-      "recentMessageTime": chatMessageData['time'],
+    final fileLink = await FirebaseStorage.instance.ref(path).getDownloadURL();
+    MessageModel message = messageModel.copyWith(
+      message: fileLink,
+    );
+    print('sending this image: $message');
+    chatCollection
+        .doc(message.chatId)
+        .collection("messages")
+        .doc(message.time.toString())
+        .set(MessageMapper.toEntity(message).toJson());
+    chatCollection.doc(message.chatId).update({
+      "recentMessage": message.messageType,
+      "recentMessageSender": message.senderName,
+      "recentMessageTime": message.time,
     });
-    List<dynamic> members = await getChatMembers(chatId);
-    for (Map<String, dynamic> member in members) {
-      if (member['name'] != chatMessageData['sender']) {
-        sendPushMessage(
-            member['fCMToken'], chatMessageData['messageType'], "New message from ${chatMessageData['sender']}");
+    List<ChatMemberEntity> members = await getChatMembers(message.chatId);
+    for (ChatMemberEntity member in members) {
+      if (member.name != message.senderName) {
+        sendPushMessage(member.fCMToken, message.messageType, "New message from ${message.senderName}");
       }
     }
   }
 
   // edit message
-  editMessage(String chatId, String message, String messageId) async {
+  editMessage({
+    required String chatId,
+    required String message,
+    required String messageId,
+  }) async {
     await chatCollection
         .doc(chatId)
         .collection("messages")
@@ -345,27 +418,27 @@ class DatabaseService {
   }
 
   // delete chat with all messages
-  deleteChat(String chatId, String chatName, String userName) async {
-    final doc = await chatCollection.doc(chatId).get();
-    final data = doc.data() as Map<String, dynamic>;
-    final members = data["members"];
-    for (Map<String, dynamic> member in members) {
-      if (member['name'] == userName) {
-        await userCollection.doc(member['uid']).update({
-          'chats': FieldValue.arrayRemove(["${chatId}_$chatName"])
-        });
-      } else {
-        await userCollection.doc(member['uid']).update({
-          'chats': FieldValue.arrayRemove(["${chatId}_$userName"]),
-        });
+  deleteChat(String chatId) async {
+    final ChatEntity? chatEntity = await getChat(chatId);
+    if (chatEntity != null) {
+      for (ChatMemberEntity member in chatEntity.members) {
+        if (member.name == chatEntity.members[0].name) {
+          await userCollection.doc(member.uid).update({
+            'chats': FieldValue.arrayRemove(["${chatEntity.chatId}_${chatEntity.members[1].name}"])
+          });
+        } else {
+          await userCollection.doc(member.uid).update({
+            'chats': FieldValue.arrayRemove(["${chatEntity.chatId}_${chatEntity.members[0].name}"]),
+          });
+        }
       }
+      await chatCollection.doc(chatEntity.chatId).collection('messages').get().then((value) => {
+            value.docs.forEach((element) {
+              element.reference.delete();
+            })
+          });
+      await chatCollection.doc(chatEntity.chatId).delete();
     }
-    await chatCollection.doc(chatId).collection('messages').get().then((value) => {
-          value.docs.forEach((element) {
-            element.reference.delete();
-          })
-        });
-    await chatCollection.doc(chatId).delete();
   }
 
   // get chatId from user chat[index]
@@ -377,12 +450,7 @@ class DatabaseService {
     UserEntity user = await getUserData();
     if (user.chats != [] && user.chats != null) {
       for (String chat in user!.chats!) {
-        List<dynamic> members = await getChatMembers(getId(chat));
-        if (members[0]['uid'] == user.uid) {
-          await deleteChat(getId(chat), members[1]['name'], members[0]['name']);
-        } else {
-          await deleteChat(getId(chat), members[0]['name'], members[1]['name']);
-        }
+        await deleteChat(getId(chat));
       }
     }
     await userCollection.doc(uid).delete();

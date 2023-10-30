@@ -1,33 +1,57 @@
 part of 'bloc.dart';
 
-abstract class ChatEvent extends Equatable {
+abstract class ChatEvent {
   const ChatEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
-class ChatFetchedEvent extends ChatEvent {
+class ChatInitEvent extends ChatEvent {
   final String chatId;
-  const ChatFetchedEvent(this.chatId);
 
-  @override
-  List<Object?> get props => [chatId];
+  const ChatInitEvent(this.chatId);
 }
+
+class NewChatEvent extends ChatEvent {
+  final List<MessageModel>? messages;
+
+  const NewChatEvent(this.messages);
+}
+
+class NewMembersEvent extends ChatEvent {
+  final List<ChatMemberModel>? members;
+
+  const NewMembersEvent(this.members);
+}
+
+class DeleteMessageEvent extends ChatEvent {
+  final MessageModel message;
+
+  const DeleteMessageEvent(this.message);
+}
+
+class DeleteChatEvent extends ChatEvent {
+  final String chatId;
+
+  const DeleteChatEvent(this.chatId);
+}
+
+class EditModeEvent extends ChatEvent {
+  final String editId;
+
+  const EditModeEvent(this.editId);
+}
+
+class EditMessageEvent extends ChatEvent {
+  final MessageModel message;
+
+  const EditMessageEvent(this.message);
+}
+
+class FileSelectEvent extends ChatEvent {}
+
+class TypingMessageEvent extends ChatEvent {}
 
 class SendMessageEvent extends ChatEvent {
-  final String chatId;
-  final Map<String, dynamic> chatMessageData;
-  const SendMessageEvent(this.chatId, this.chatMessageData);
+  final MessageModel message;
 
-  @override
-  List<Object?> get props => [chatId, chatMessageData];
-}
-
-class ChatUpdateEvent extends ChatEvent {
-  final ChatEntity chatEntity;
-  const ChatUpdateEvent(this.chatEntity);
-
-  @override
-  List<Object?> get props => [chatEntity];
+  const SendMessageEvent(this.message);
 }

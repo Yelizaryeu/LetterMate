@@ -17,7 +17,7 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$ChatModel {
   String get chatId => throw _privateConstructorUsedError;
-  List<dynamic> get members => throw _privateConstructorUsedError;
+  List<ChatMemberModel> get members => throw _privateConstructorUsedError;
   String get recentMessage => throw _privateConstructorUsedError;
   int? get recentMessageTime => throw _privateConstructorUsedError;
   String? get recentMessageSender => throw _privateConstructorUsedError;
@@ -34,7 +34,7 @@ abstract class $ChatModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String chatId,
-      List<dynamic> members,
+      List<ChatMemberModel> members,
       String recentMessage,
       int? recentMessageTime,
       String? recentMessageSender});
@@ -67,7 +67,7 @@ class _$ChatModelCopyWithImpl<$Res, $Val extends ChatModel>
       members: null == members
           ? _value.members
           : members // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<ChatMemberModel>,
       recentMessage: null == recentMessage
           ? _value.recentMessage
           : recentMessage // ignore: cast_nullable_to_non_nullable
@@ -94,7 +94,7 @@ abstract class _$$ChatModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String chatId,
-      List<dynamic> members,
+      List<ChatMemberModel> members,
       String recentMessage,
       int? recentMessageTime,
       String? recentMessageSender});
@@ -125,7 +125,7 @@ class __$$ChatModelImplCopyWithImpl<$Res>
       members: null == members
           ? _value._members
           : members // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<ChatMemberModel>,
       recentMessage: null == recentMessage
           ? _value.recentMessage
           : recentMessage // ignore: cast_nullable_to_non_nullable
@@ -147,7 +147,7 @@ class __$$ChatModelImplCopyWithImpl<$Res>
 class _$ChatModelImpl implements _ChatModel {
   _$ChatModelImpl(
       {required this.chatId,
-      required final List<dynamic> members,
+      required final List<ChatMemberModel> members,
       required this.recentMessage,
       required this.recentMessageTime,
       required this.recentMessageSender})
@@ -155,9 +155,9 @@ class _$ChatModelImpl implements _ChatModel {
 
   @override
   final String chatId;
-  final List<dynamic> _members;
+  final List<ChatMemberModel> _members;
   @override
-  List<dynamic> get members {
+  List<ChatMemberModel> get members {
     if (_members is EqualUnmodifiableListView) return _members;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_members);
@@ -209,7 +209,7 @@ class _$ChatModelImpl implements _ChatModel {
 abstract class _ChatModel implements ChatModel {
   factory _ChatModel(
       {required final String chatId,
-      required final List<dynamic> members,
+      required final List<ChatMemberModel> members,
       required final String recentMessage,
       required final int? recentMessageTime,
       required final String? recentMessageSender}) = _$ChatModelImpl;
@@ -217,7 +217,7 @@ abstract class _ChatModel implements ChatModel {
   @override
   String get chatId;
   @override
-  List<dynamic> get members;
+  List<ChatMemberModel> get members;
   @override
   String get recentMessage;
   @override

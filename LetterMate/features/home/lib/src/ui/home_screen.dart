@@ -27,10 +27,9 @@ class HomeScreen extends StatelessWidget {
           return BottomNavigationBar(
             currentIndex: tabsRouter.activeIndex,
             onTap: (index) {
-              // here we switch between tabs
               tabsRouter.setActiveIndex(index);
             },
-            backgroundColor: AppTheme.elementColor,
+            backgroundColor: AppColors.grey,
             items: const [
               BottomNavigationBarItem(
                 label: 'Chats',

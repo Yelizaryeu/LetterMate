@@ -21,6 +21,7 @@ class AppDimens {
   static const double BORDER_RADIUS_48 = 48.0;
   static const double BORDER_RADIUS_100 = 100.0;
 
+  static const double PADDING_1 = 1.0;
   static const double PADDING_4 = 4.0;
   static const double PADDING_5 = 5.0;
   static const double PADDING_6 = 6.0;
@@ -36,6 +37,7 @@ class AppDimens {
   static const double PADDING_24 = 24.0;
   static const double PADDING_25 = 25.0;
   static const double PADDING_28 = 28.0;
+  static const double PADDING_105 = 105.0;
 
   static const double MARGIN_4 = 4.0;
   static const double MARGIN_6 = 6.0;

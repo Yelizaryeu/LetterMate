@@ -12,6 +12,6 @@ class GetUserDataUseCase extends FutureUseCase<NoParams, UserModel> {
 
   @override
   Future<UserModel> execute(NoParams input) async {
-    return await _databaseRepository.getUserData();
+    return _databaseRepository.getUserData();
   }
 }
