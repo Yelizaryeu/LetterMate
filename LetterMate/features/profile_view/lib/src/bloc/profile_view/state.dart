@@ -26,12 +26,13 @@ class ProfileState extends Equatable {
     String? pickedFile,
   }) {
     return ProfileState(
-        displayName: displayName ?? this.displayName,
-        uuid: uuid ?? this.uuid,
-        photoURL: photoURL ?? this.photoURL,
-        isLoading: isLoading ?? this.isLoading,
-        isEditMode: isEditMode ?? this.isEditMode,
-        pickedFile: pickedFile ?? this.pickedFile);
+      displayName: displayName ?? this.displayName,
+      uuid: uuid ?? this.uuid,
+      photoURL: photoURL ?? this.photoURL,
+      isLoading: isLoading ?? this.isLoading,
+      isEditMode: isEditMode ?? this.isEditMode,
+      pickedFile: pickedFile ?? this.pickedFile,
+    );
   }
 
   @override

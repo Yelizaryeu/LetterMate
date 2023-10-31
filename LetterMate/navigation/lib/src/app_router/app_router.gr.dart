@@ -30,8 +30,9 @@ class _$AppRouter extends RootStackRouter {
         child: ChatViewScreen(
           key: args.key,
           chatId: args.chatId,
-          chatName: args.chatName,
-          userName: args.userName,
+
+          ///chatName: args.chatName,
+          ///userName: args.userName,
         ),
       );
     },

@@ -9,7 +9,7 @@ class UserModel with _$UserModel {
     required String uid,
     required String displayName,
     required String photoURL,
-    List<dynamic>? chats,
+    List<String>? chats,
     required String fCMToken,
   }) = _UserModel;
 }

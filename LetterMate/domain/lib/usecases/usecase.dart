@@ -7,7 +7,7 @@ abstract class FutureUseCase<Input, Output> {
 }
 
 abstract class StreamUseCase<Input, Output> {
-  Stream<Output> execute(Input input);
+  Stream<Output>? execute(Input input);
 }
 
 class NoParams {

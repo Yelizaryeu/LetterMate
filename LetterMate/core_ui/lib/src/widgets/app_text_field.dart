@@ -6,12 +6,14 @@ class AppTextField extends StatelessWidget {
   final String hintText;
   final bool? disabled;
   final double? width;
+  final Color? color;
 
   const AppTextField({
     required this.controller,
     required this.hintText,
     super.key,
     this.width,
+    this.color,
     this.disabled,
   });
 
@@ -19,7 +21,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.elementColor,
+        color: color ?? AppColors.grey,
         borderRadius: BorderRadius.circular(4),
       ),
       height: 40,

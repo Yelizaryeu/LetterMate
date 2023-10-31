@@ -74,16 +74,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileEditModeEvent event,
     Emitter<ProfileState> emit,
   ) async {
-    emit(state.copyWith(
-      isEditMode: true,
-    ));
+    emit(state.copyWith(isEditMode: true));
   }
 
   Future<void> _onProfileSelectAvatarEvent(
     ProfileSelectAvatarEvent event,
     Emitter<ProfileState> emit,
   ) async {
-    final result = await FilePicker.platform.pickFiles();
+    final FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result == null) return;
     emit(
       state.copyWith(
