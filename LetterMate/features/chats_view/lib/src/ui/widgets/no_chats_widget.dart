@@ -2,7 +2,9 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 
 class NoChatsWidget extends StatelessWidget {
-  const NoChatsWidget({Key? key}) : super(key: key);
+  final VoidCallback? onPressed;
+
+  const NoChatsWidget({Key? key, this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +19,7 @@ class NoChatsWidget extends StatelessWidget {
               padding: const EdgeInsets.all(AppDimens.PADDING_10),
               child: GestureDetector(
                 onTap: () {
+                  onPressed;
                   //popUpDialog(context);
                 },
                 child: const Icon(

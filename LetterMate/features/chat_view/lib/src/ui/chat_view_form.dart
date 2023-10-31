@@ -79,7 +79,7 @@ class _ChatFormState extends State<ChatViewForm> {
                       child: CircularProgressIndicator.adaptive(),
                     ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppDimens.PADDING_6, vertical: AppDimens.PADDING_25),
+                padding: const EdgeInsets.symmetric(horizontal: AppDimens.PADDING_6, vertical: AppDimens.PADDING_10),
                 child: ChatTypingIndicatorWidget(state: state),
               ),
               Container(

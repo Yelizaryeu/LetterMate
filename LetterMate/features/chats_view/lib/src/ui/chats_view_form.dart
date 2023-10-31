@@ -38,7 +38,9 @@ class _ChatsFormState extends State<ChatsViewForm> {
                     child: Text(
                       'New chat',
                       textAlign: TextAlign.right,
-                      style: AppFonts.normal20black,
+                      style: AppFonts.normal20.copyWith(
+                        color: AppColors.black,
+                      ),
                     ),
                   ),
                   Padding(
@@ -52,7 +54,8 @@ class _ChatsFormState extends State<ChatsViewForm> {
                         ),
                       ),
                       onPressed: () {
-                        popUpDialog(context);
+                        showCreateChatMenu(context);
+                        //popUpDialog(context);
                       },
                       child: const Icon(
                         Icons.add_circle,
@@ -75,46 +78,78 @@ class _ChatsFormState extends State<ChatsViewForm> {
     );
   }
 
-  popUpDialog(BuildContext contextWidget) {
-    showDialog(
-      barrierDismissible: false,
+  void showCreateChatMenu(BuildContext contextWidget) {
+    showModalBottomSheet(
+      backgroundColor: AppColors.lightBlue,
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text(
-                "Create a chat",
-                textAlign: TextAlign.left,
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppDimens.BORDER_RADIUS_10),
+          topRight: Radius.circular(AppDimens.BORDER_RADIUS_10),
+        ),
+      ),
+      builder: (_) {
+        return SizedBox(
+          height: AppDimens.heightNewChat,
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  AppTextField(
-                    controller: _uuidController,
-                    hintText: 'Enter UUID',
+                  Padding(
+                    padding: const EdgeInsets.only(left: AppDimens.PADDING_18),
+                    child: Text(
+                      'New chat',
+                      style: AppFonts.normal20.copyWith(
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(
+                      Icons.cancel_rounded,
+                      color: AppColors.darkGrey,
+                    ),
                   ),
                 ],
               ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
-                  child: const Text("CANCEL"),
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    AppTextField(
+                      controller: _uuidController,
+                      hintText: 'User UUID',
+                      color: AppColors.grey,
+                      width: 340,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppDimens.PADDING_30),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          BlocProvider.of<ChatsBloc>(contextWidget).add(ChatsCreateEvent(_uuidController.text));
+                          Navigator.of(contextWidget).pop();
+                          _uuidController.clear();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          textStyle: AppFonts.robotoBold16.copyWith(
+                            color: AppColors.white,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppDimens.BORDER_RADIUS_8),
+                          ),
+                          backgroundColor: AppColors.blue,
+                        ),
+                        child: const Text('Create'),
+                      ),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    BlocProvider.of<ChatsBloc>(contextWidget).add(ChatsCreateEvent(_uuidController.text));
-                    Navigator.of(contextWidget).pop();
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Theme.of(contextWidget).primaryColor),
-                  child: const Text("CREATE"),
-                ),
-              ],
-            );
-          },
+              ),
+            ],
+          ),
         );
       },
     );

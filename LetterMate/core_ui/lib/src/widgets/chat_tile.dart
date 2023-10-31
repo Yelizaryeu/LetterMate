@@ -105,9 +105,15 @@ class _ChatTileState extends State<ChatTile> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          messageSender == widget.userName ? message ?? "Joined as ${widget.userName}" : '$messageSender: $message',
-          style: const TextStyle(fontSize: 13),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.only(right: 13.0),
+            child: Text(
+              messageSender == widget.userName ? message ?? "Joined as ${widget.userName}" : '$messageSender: $message',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
         ),
         Text(
           time != null ? messageDate(time) : '',

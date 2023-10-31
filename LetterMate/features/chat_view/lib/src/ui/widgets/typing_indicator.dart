@@ -9,10 +9,18 @@ class ChatTypingIndicatorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.isCompanionTyping) {
+    if (state.members![0].isTyping == "true") {
       if (state.members![0].name != state.userName) {
         return SimpleTypingIndicatorWidget(
           user: state.members![0].name,
+        );
+      } else {
+        return Container();
+      }
+    } else if (state.members![1].isTyping == "true") {
+      if (state.members![1].name != state.userName) {
+        return SimpleTypingIndicatorWidget(
+          user: state.members![1].name,
         );
       } else {
         return Container();
