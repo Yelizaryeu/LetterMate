@@ -88,6 +88,7 @@ class DatabaseService {
                 uid: userEntity.uid,
                 uuid: userEntity.uuid,
                 name: userEntity.displayName,
+                photoURL: userEntity.photoURL,
                 fCMToken: userEntity.fCMToken,
                 isTyping: 'false'));
         await updateChatMessagesSender(getId(chat), uid, userEntity.displayName);
@@ -144,11 +145,11 @@ class DatabaseService {
         chats: [],
         fCMToken: '',
       );
-      user.fCMToken = await getFCMToken();
+      user.copyWith(fCMToken: await getFCMToken());
       await DatabaseService(uid: uid).updateUserData(user);
     } else {
       user = UserEntity.fromJson(doc.data() as Map<String, dynamic>);
-      user.fCMToken = await getFCMToken();
+      user.copyWith(fCMToken: await getFCMToken());
       await DatabaseService(uid: uid).updateUserData(user);
     }
     return user;
@@ -185,17 +186,18 @@ class DatabaseService {
         uid: currentUser.uid,
         uuid: currentUser.uuid,
         name: currentUser.displayName,
+        photoURL: currentUser.photoURL,
         fCMToken: currentUser.fCMToken,
         isTyping: 'false');
     final companionMember = ChatMemberEntity(
         uid: companion.uid,
         uuid: companion.uuid,
         name: companion.displayName,
+        photoURL: companion.photoURL,
         fCMToken: companion.fCMToken,
         isTyping: 'false');
     DocumentReference chatDocumentReference = await chatCollection.add(ChatEntity(
       chatId: "",
-      chatIcon: "",
       members: [currentUserMember.toJson(), companionMember.toJson()],
       recentMessage: "",
       recentMessageSender: "",

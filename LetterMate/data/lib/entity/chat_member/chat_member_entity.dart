@@ -1,39 +1,18 @@
-import 'package:domain/models/chat_member/chat_member_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class ChatMemberEntity extends ChatMemberModel {
+part 'chat_member_entity.freezed.dart';
+part 'chat_member_entity.g.dart';
 
-  ChatMemberEntity(
-      { required super.uid,
-        required super.uuid,
-        required super.name,
-        required super.fCMToken,
-        required super.isTyping,
-      });
+@freezed
+class ChatMemberEntity with _$ChatMemberEntity {
+  factory ChatMemberEntity({
+    required String uuid,
+    required String uid,
+    required String name,
+    required String photoURL,
+    required String fCMToken,
+    required String isTyping,
+  }) = _ChatMemberEntity;
 
-
-  factory  ChatMemberEntity.fromJson(Map<String, dynamic> json) {
-
-    return ChatMemberEntity(
-      uid: json['uid'],
-      uuid: json["uuid"],
-      name: json['name'],
-      fCMToken: json['fCMToken'],
-      isTyping: json['isTyping'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'uid' : uid,
-      'uuid' : uuid,
-      'name': name,
-      'fCMToken': fCMToken,
-      'isTyping' : isTyping,
-    };
-  }
-
-  @override
-  String toString() {
-    return 'UUID: $uuid, Name: $name';
-  }
+  factory ChatMemberEntity.fromJson(Map<String, dynamic> json) => _$ChatMemberEntityFromJson(json);
 }

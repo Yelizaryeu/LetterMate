@@ -1,5 +1,10 @@
 library core_ui;
 
-export 'src/theme/app_colors.dart';
-export 'src/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+
 export 'src/widgets/widgets.dart';
+
+part 'src/theme/app_colors.dart';
+part 'src/theme/app_dimens.dart';
+part 'src/theme/app_fonts.dart';
+part 'src/theme/app_theme.dart';

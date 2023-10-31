@@ -3,10 +3,10 @@ import 'package:domain/usecases/usecase.dart';
 import '../models/user/user_model.dart';
 import '../repositories/database_repository.dart';
 
-class GetUserData extends FutureUseCase<NoParams, UserModel> {
+class GetUserDataUseCase extends FutureUseCase<NoParams, UserModel> {
   final DatabaseRepository _databaseRepository;
 
-  GetUserData({
+  GetUserDataUseCase({
     required DatabaseRepository databaseRepository,
   }) : _databaseRepository = databaseRepository;
 

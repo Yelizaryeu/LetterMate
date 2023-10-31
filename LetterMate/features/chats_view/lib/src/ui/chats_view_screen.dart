@@ -1,23 +1,16 @@
-import 'package:chats_view/chats_view.dart';
-import 'package:chats_view/src/bloc/bloc.dart';
-import 'package:core/core.dart';
 import 'package:core/di/app_di.dart';
-import 'package:core/services/auth.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:data/services/auth.dart';
+import 'package:core_ui/core_ui.dart';
 import 'package:data/entity/user/user_entity.dart';
-import 'package:data/entity/chat/chat_entity.dart';
-import 'package:navigation/navigation.dart';
 import 'package:data/providers/database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:core_ui/core_ui.dart';
+import 'package:flutter/material.dart';
 
 class ChatsViewScreen extends StatefulWidget {
   const ChatsViewScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => ChatsViewScreenState();
-
 }
 
 class ChatsViewScreenState extends State<ChatsViewScreen> {
@@ -53,14 +46,9 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
     return res.substring(res.indexOf("_") + 1);
   }
 
-
-
-
   gettingUserData() async {
     // getting the list of snapshots in our stream
-    await databaseService
-        .gettingUserData()
-        .then((snapshot) {
+    await databaseService.gettingUserData().then((snapshot) {
       setState(() {
         chats = snapshot;
       });
@@ -74,8 +62,6 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
     });
   }
 
-
-
   @override
   void dispose() {
     controller.dispose();
@@ -87,7 +73,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade400,
+        backgroundColor: AppTheme.elementColor,
         title: Align(
           alignment: Alignment.centerRight,
           child: Row(
@@ -124,7 +110,12 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                   child: /*Text(
                     '+',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),*/ Icon(Icons.add_circle, color: Colors.blue.shade800, size: 25.0,),
+                  ),*/
+                      Icon(
+                    Icons.add_circle,
+                    color: Colors.blue.shade800,
+                    size: 25.0,
+                  ),
                 ),
               ),
             ],
@@ -151,30 +142,26 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                 children: [
                   _isLoading == true
                       ? Center(
-                    child: CircularProgressIndicator(
-                        color: Theme.of(context).primaryColor),
-                  )
+                          child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
+                        )
                       : TextField(
-                    onChanged: (val) {
-                      setState(() {
-                        companionId = val;
-                      });
-                    },
-                    style: const TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                            borderRadius: BorderRadius.circular(20)),
-                        errorBorder: OutlineInputBorder(
-                            borderSide:
-                            const BorderSide(color: Colors.red),
-                            borderRadius: BorderRadius.circular(20)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                            borderRadius: BorderRadius.circular(20))),
-                  ),
+                          onChanged: (val) {
+                            setState(() {
+                              companionId = val;
+                            });
+                          },
+                          style: const TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                                  borderRadius: BorderRadius.circular(20)),
+                              errorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Colors.red),
+                                  borderRadius: BorderRadius.circular(20)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                                  borderRadius: BorderRadius.circular(20))),
+                        ),
                 ],
               ),
               actions: [
@@ -182,8 +169,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  style: ElevatedButton.styleFrom(
-                      primary: Theme.of(context).primaryColor),
+                  style: ElevatedButton.styleFrom(primary: Theme.of(context).primaryColor),
                   child: const Text("CANCEL"),
                 ),
                 ElevatedButton(
@@ -192,26 +178,21 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
                       setState(() {
                         _isLoading = true;
                       });
-                      if (await databaseService.checkExist(companionId)){
-                        databaseService
-                            .createChat(userName, companionId)
-                            .whenComplete(() {
+                      if (await databaseService.checkExist(companionId)) {
+                        databaseService.createChat(userName, companionId).whenComplete(() {
                           _isLoading = false;
                         });
                         Navigator.of(context).pop();
                       } else {
                         Navigator.of(context).pop();
                         _isLoading = false;
-                        showSnackbar(
-                            context, Colors.red, "this user don't exist.");
-
+                        showSnackbar(context, Colors.red, "this user don't exist.");
                       }
                       // showSnackbar(
                       //     context, Colors.green, "Group created successfully.");
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                      primary: Theme.of(context).primaryColor),
+                  style: ElevatedButton.styleFrom(primary: Theme.of(context).primaryColor),
                   child: const Text("CREATE"),
                 )
               ],
@@ -230,8 +211,6 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
           if (snapshot.data['chats'] != null) {
             print('snapshot have chats');
             if (snapshot.data['chats'].length != 0) {
-
-
               return ListView.builder(
                 padding: EdgeInsets.only(top: 5),
                 itemCount: snapshot.data['chats'].length,
@@ -255,8 +234,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
         } else {
           print('snapshot have no data');
           return Center(
-            child: CircularProgressIndicator(
-                color: Theme.of(context).primaryColor),
+            child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
           );
         }
       },
@@ -291,11 +269,7 @@ class ChatsViewScreenState extends State<ChatsViewScreen> {
       ),
     );
   }
-
-
 }
-
-
 
 void showSnackbar(context, color, message) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -315,24 +289,24 @@ void showSnackbar(context, color, message) {
   );
 }
 
-  // Widget _displayChatList () {
-  //   return StreamBuilder(stream: FirebaseFirestore.instance.collection('users').snapshots(), builder: (context, snapshot) {
-  //       return ListView(children:
-  //           snapshot.data!.docs.map<Widget>((doc) => _buildChatListItem(doc)).toList(),
-  //       );
-  //   },);
-  // }
+// Widget _displayChatList () {
+//   return StreamBuilder(stream: FirebaseFirestore.instance.collection('users').snapshots(), builder: (context, snapshot) {
+//       return ListView(children:
+//           snapshot.data!.docs.map<Widget>((doc) => _buildChatListItem(doc)).toList(),
+//       );
+//   },);
+// }
 
-  // Widget _buildChatListItem(DocumentSnapshot document) {
-  //   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-  //
-  //   if (currentUser.uid != data['uid']) {
-  //     return ListTile(
-  //       title: data['displayName'],
-  //       onTap: () {},
-  //     );
-  //   }
-  //   else {
-  //     return Container();
-  //   }
-  // }
+// Widget _buildChatListItem(DocumentSnapshot document) {
+//   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+//
+//   if (currentUser.uid != data['uid']) {
+//     return ListTile(
+//       title: data['displayName'],
+//       onTap: () {},
+//     );
+//   }
+//   else {
+//     return Container();
+//   }
+// }

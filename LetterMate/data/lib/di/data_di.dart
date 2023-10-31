@@ -1,12 +1,9 @@
-import 'package:chat_view/chat_view.dart';
+import 'package:core/di/app_di.dart';
 import 'package:data/providers/database_service.dart';
 import 'package:data/repositories/database_repository_impl.dart';
 import 'package:domain/domain.dart';
 import 'package:domain/usecases/update_avatar_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:profile_view/profile_view.dart';
-
-import 'app_di.dart';
 
 final DataDI dataDI = DataDI();
 
@@ -38,31 +35,14 @@ class DataDI {
       ),
     );
 
-    //Profile BLoC
-    appLocator.registerFactory(
-      () => ProfileBloc(
-        updateUserData: appLocator(),
-        updateUserAvatar: appLocator(),
-        getUserData: appLocator(),
-        deleteUserUseCase: appLocator(),
-      ),
-    );
-
-    //Chat BLoC
-    appLocator.registerFactory(
-      () => ChatBloc(
-        databaseRepository: appLocator(),
-      ),
-    );
-
-    appLocator.registerLazySingleton<UpdateUserData>(
-      () => UpdateUserData(
+    appLocator.registerLazySingleton<UpdateUserDataUseCase>(
+      () => UpdateUserDataUseCase(
         databaseRepository: appLocator.get<DatabaseRepository>(),
       ),
     );
 
-    appLocator.registerLazySingleton<UpdateUserAvatar>(
-      () => UpdateUserAvatar(
+    appLocator.registerLazySingleton<UpdateUserAvatarUseCase>(
+      () => UpdateUserAvatarUseCase(
         databaseRepository: appLocator.get<DatabaseRepository>(),
       ),
     );
@@ -73,8 +53,8 @@ class DataDI {
       ),
     );
 
-    appLocator.registerLazySingleton<GetUserData>(
-      () => GetUserData(
+    appLocator.registerLazySingleton<GetUserDataUseCase>(
+      () => GetUserDataUseCase(
         databaseRepository: appLocator.get<DatabaseRepository>(),
       ),
     );

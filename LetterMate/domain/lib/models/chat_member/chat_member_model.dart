@@ -1,9 +1,15 @@
-class ChatMemberModel {
-  final String uid;
-  final String uuid;
-  final String name;
-  final String fCMToken;
-  String isTyping;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  ChatMemberModel({required this.uid, required this.uuid, required this.name, required this.fCMToken, required this.isTyping});
+part 'chat_member_model.freezed.dart';
+
+@freezed
+class ChatMemberModel with _$ChatMemberModel {
+  factory ChatMemberModel({
+    required String uuid,
+    required String uid,
+    required String name,
+    required String photoURL,
+    required String fCMToken,
+    required String isTyping,
+  }) = _ChatMemberModel;
 }

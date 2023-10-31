@@ -1,19 +1,15 @@
-import 'dart:typed_data';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class UserModel {
-String uuid;
-final String uid;
-String displayName;
-String photoURL;
-List<dynamic>? chats;
-String fCMToken;
+part 'user_model.freezed.dart';
 
-UserModel({
-  required this.uuid,
-  required this.uid,
-  required this.displayName,
-  required this.photoURL,
-  required this.chats,
-  required this.fCMToken,
-});
+@freezed
+class UserModel with _$UserModel {
+  factory UserModel({
+    required String uuid,
+    required String uid,
+    required String displayName,
+    required String photoURL,
+    List<dynamic>? chats,
+    required String fCMToken,
+  }) = _UserModel;
 }

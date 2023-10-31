@@ -16,12 +16,9 @@ dependencies:
     path: ../../domain
   core_ui:
     path: ../../core_ui
-  navigation:
-    path: ../../navigation
 
-  easy_localization: ^3.0.1
-  get_it: ^7.6.0
   equatable: ^2.0.5
+  cloud_firestore: ^4.9.1
 
 dev_dependencies:
   flutter_test:

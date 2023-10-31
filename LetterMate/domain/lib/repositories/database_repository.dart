@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data/entity/chat/chat_entity.dart';
-import 'package:data/entity/user/user_entity.dart';
+
+import '../domain.dart';
 
 abstract class DatabaseRepository {
-  Future<void> updateUserData(UserEntity user);
+  Future<void> updateUserData(UserModel user);
   Future<void> updateUserAvatar(File file);
   Future<void> updateUserName(String name);
   Future<void> updateUserUUID(String uuid);
-  Future<UserEntity> getUserData();
+  Future<UserModel> getUserData();
   Stream<DocumentSnapshot> gettingUserData();
   Future<ChatEntity?> getUserChat(String chatId);
   Future<void> updateChatData(ChatEntity chat);
